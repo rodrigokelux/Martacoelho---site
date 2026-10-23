@@ -118,7 +118,7 @@
       </header>
       <nav class="drawer-nav" id="drawerNav" aria-label="Menu móvel">
         <button class="icon-btn drawer-nav__close" id="menuClose" aria-label="Fechar menu">${ICON.close}</button>
-        <a class="big" href="colecao.html?c=inverno">Novidades</a>
+        <a class="big" href="colecao.html?c=inverno">Coleção de Inverno</a>
         <a class="big" href="colecao.html?c=todos">Vestuário</a>
         <a class="big" href="colecao.html?c=malas">Malas</a>
         <a class="big" href="sobre.html">Sobre nós</a>
@@ -504,7 +504,7 @@
           <a class="pcard__name" href="produto.html?p=${p.h}"><b>${esc(p.name)}</b>${p.color ? ` em ${esc(p.color)}` : ''}</a>
           <div class="pcard__price">${p.was ? `<s>${money(p.was)}</s><span class="sale">${money(p.price)}</span>` : money(p.price)}</div>
         </div>
-        ${sib.length > 1 ? `<div class="pcard__sw">${sib.map(s => `<a href="produto.html?p=${s.h}" class="${s.h === p.h ? 'is-on' : ''}" style="--c:${swatchOf(s.color)}" title="${esc(s.color)}" aria-label="${esc(s.color)}"></a>`).join('')}</div>` : ''}
+        ${sib.length > 1 ? `<div class="pcard__sw">${sib.map(s => `<a href="produto.html?p=${s.h}" data-swap="${s.h}" class="${s.h === p.h ? 'is-on' : ''}" style="--c:${swatchOf(s.color)}" title="${esc(s.color)}" aria-label="${esc(s.color)}"></a>`).join('')}</div>` : ''}
       </article>`;
   }
 
@@ -520,6 +520,20 @@
   document.addEventListener('mouseout', e => {
     const m = e.target.closest('.pcard__media');
     if (m && !m.contains(e.relatedTarget)) showCardImg(m, 0);
+  });
+
+  // amostras de cor: trocam o cartão para essa cor sem sair da página
+  document.addEventListener('click', e => {
+    const a = e.target.closest('.pcard__sw [data-swap]'); if (!a) return;
+    e.preventDefault();
+    const card = a.closest('.pcard'), p = byHandle(a.dataset.swap);
+    if (!p || a.classList.contains('is-on')) return;
+    const t = document.createElement('div');
+    t.innerHTML = pcard(p).trim();
+    const next = t.firstElementChild;
+    next.style.animation = 'none';
+    card.replaceWith(next);
+    $(`[data-swap="${p.h}"]`, next)?.focus({ preventScroll: true });
   });
 
   // setas de imagem dentro dos cartões
@@ -540,9 +554,8 @@
 
     // Banner: dois painéis com fotografias de várias coleções
     const HERO = [
-      ['IMG_3452.heic', 'BlazerTRIVIAVerdeasRiscas-Imagem1.jpg'],
-      ['BlazerTRIVIABrancoTerracota-Imagem1.jpg', 'IMG_3167.heic'],
-      ['CamisaTRIVIAPintasVermelhas-Imagem1.jpg', 'IMG_14292.heic']
+      ['IMG_3452.heic', 'BlazerTRIVIABrancoTerracota-Imagem1.jpg'],
+      ['CamisaTRIVIAPintasVermelhas-Imagem1.jpg', 'IMG_3167.heic']
     ];
     const panels = $$('.hero__panel');
     HERO.forEach((pair, i) => pair.forEach((f, k) => {
@@ -609,7 +622,7 @@
     showQ(0);
 
     // Instagram: destaques escolhidos à mão (não as publicações mais recentes)
-    const IG = [[CDN + 'IMG_3452.heic'], ['casaco-burel-oversized-auranza-xadrez-colorido', 3], [CDN + 'BlazerTRIVIAVerdeasRiscas-Imagem2.jpg'], ['mini-tote-bag-cortica-fragments-gold-green', 0], [CDN + 'IMG01905-3.jpg'], ['calcas-largas-oliva-azulao', 1]];
+    const IG = [[CDN + 'IMG_3452.heic'], ['casaco-burel-oversized-auranza-xadrez-colorido', 3], ['casaco-la-oversized-luranza-verde', 1], ['mini-tote-bag-cortica-fragments-gold-green', 0], [CDN + 'IMG01905-3.jpg'], ['calcas-largas-oliva-azulao', 1]];
     $('#igGrid').innerHTML = IG.map(([h, i]) => {
       const u = h.startsWith('http') ? h : byHandle(h).img[i];
       return `<a href="https://www.instagram.com/bymartacoelho/" target="_blank" rel="noopener" aria-label="Ver no Instagram"><img src="${img(u, 500)}" alt="" loading="lazy"><span>${ICON.ig}</span></a>`;
@@ -706,18 +719,30 @@
 
     // Galeria
     const gal = $('#gallery');
-    gal.innerHTML = p.img.map((u, i) => `<figure data-i="${i}"><img src="${img(u, i ? 900 : 1400)}" srcset="${srcset(u, [600, 900, 1300, 1800])}" sizes="(max-width: 900px) 100vw, ${i ? '30vw' : '60vw'}" alt="${esc(p.name)} ${esc(p.color)}, imagem ${i + 1}" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}></figure>`).join('');
-    $('#galleryDots').innerHTML = p.img.map((_, i) => `<i class="${i ? '' : 'is-active'}"></i>`).join('');
-    gal.addEventListener('scroll', () => { const i = Math.round(gal.scrollLeft / gal.clientWidth); $$('#galleryDots i').forEach((d, k) => d.classList.toggle('is-active', k === i)); }, { passive: true });
+    // Imagem principal com miniaturas por baixo
+    gal.innerHTML = `<figure class="pdp__main"><img src="${img(p.img[0], 1400)}" srcset="${srcset(p.img[0], [600, 900, 1300, 1800])}" sizes="(max-width: 900px) 100vw, 60vw" alt="${esc(p.name)} ${esc(p.color)}" fetchpriority="high"></figure>`
+      + (p.img.length > 1 ? `<div class="pdp__thumbs">${p.img.map((u, i) => `<button class="${i ? '' : 'is-active'}" data-i="${i}" aria-label="Ver imagem ${i + 1}"><img src="${img(u, 240)}" alt="" loading="lazy"></button>`).join('')}</div>` : '');
+    const main = $('.pdp__main', gal), mainImg = $('img', main);
+    let gi = 0;
+    const showImg = i => {
+      gi = (i + p.img.length) % p.img.length;
+      mainImg.src = img(p.img[gi], 1400); mainImg.srcset = srcset(p.img[gi], [600, 900, 1300, 1800]);
+      $$('.pdp__thumbs button', gal).forEach((t, k) => t.classList.toggle('is-active', k === gi));
+    };
+    gal.addEventListener('click', e => { const t = e.target.closest('.pdp__thumbs button'); if (t) showImg(+t.dataset.i); });
+    // deslizar o dedo para mudar de imagem (telemóvel)
+    let tx = null;
+    main.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+    main.addEventListener('touchend', e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 40) showImg(gi + (dx < 0 ? 1 : -1)); });
     // zoom ao passar o rato + lightbox
-    if (finePointer) $$('figure', gal).forEach(f => {
-      f.addEventListener('mousemove', e => { const r = f.getBoundingClientRect(); f.querySelector('img').style.transformOrigin = `${(e.clientX - r.left) / r.width * 100}% ${(e.clientY - r.top) / r.height * 100}%`; });
-      f.addEventListener('mouseenter', () => f.classList.add('is-zoom'));
-      f.addEventListener('mouseleave', () => f.classList.remove('is-zoom'));
-    });
+    if (finePointer) {
+      main.addEventListener('mousemove', e => { const r = main.getBoundingClientRect(); mainImg.style.transformOrigin = `${(e.clientX - r.left) / r.width * 100}% ${(e.clientY - r.top) / r.height * 100}%`; });
+      main.addEventListener('mouseenter', () => main.classList.add('is-zoom'));
+      main.addEventListener('mouseleave', () => main.classList.remove('is-zoom'));
+    }
     const lb = $('#lightbox'); let li = 0;
     const showLb = i => { li = (i + p.img.length) % p.img.length; $('img', lb).src = img(p.img[li], 2000); };
-    gal.addEventListener('click', e => { const f = e.target.closest('figure'); if (!f || !finePointer) return; showLb(+f.dataset.i); lb.classList.add('is-on'); });
+    main.addEventListener('click', () => { if (!finePointer) return; showLb(gi); lb.classList.add('is-on'); });
     $('.lightbox__close', lb).addEventListener('click', () => lb.classList.remove('is-on'));
     $('.lightbox__nav.prev', lb).addEventListener('click', () => showLb(li - 1));
     $('.lightbox__nav.next', lb).addEventListener('click', () => showLb(li + 1));
@@ -900,7 +925,11 @@
     const set = (sel, h, i, w = 1200) => { const el = $(sel); const p = byHandle(h); if (el && p) { el.src = img(p.img[i], w); el.srcset = srcset(p.img[i], [600, 900, 1300]); } };
     set('#aboutImg', 'casaco-la-oversized-luranza-verde', 0);
     set('#storyImg', 'blusa-oversized-bambu-essenza-branco', 1, 900);
-    bindRail($('.timeline'));
+    const tl = $('.timeline'), tt = $('.timeline__track');
+    bindRail(tl);
+    // esconde o esbatimento da direita quando se chega ao fim do percurso
+    const tlEnd = () => tl.classList.toggle('is-end', tt.scrollLeft >= tt.scrollWidth - tt.clientWidth - 4);
+    tt.addEventListener('scroll', tlEnd, { passive: true }); addEventListener('resize', tlEnd); tlEnd();
   }
 
   /* ------------------------------------------------------------------------
