@@ -114,7 +114,7 @@ input, select, textarea { font: inherit; color: inherit; }
    ========================================================================== */
 .ann {
   height: var(--ann-h); display: flex; align-items: center; justify-content: center;
-  background: var(--grey); color: var(--ink); font-size: 11px; font-weight: 500; letter-spacing: .08em;
+  background: var(--orange); color: var(--white); font-size: 11px; font-weight: 600; letter-spacing: .08em;
   overflow: hidden; transition: margin-top .45s var(--ease);
 }
 .ann__track { position: relative; height: 100%; width: 100%; }
