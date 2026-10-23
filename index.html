@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Marta Coelho | Moda sustentável feita à mão em Portugal</title>
+  <meta name="description" content="Coleção Outono–Inverno Marta Coelho: casacos em burel e lã, malhas em bambu e malas em cortiça. Moda sustentável, colorida e feita à mão em Portugal.">
+  <meta name="theme-color" content="#f18918">
+  <link rel="icon" href="assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.shopify.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="home">
+  <div class="preloader" aria-hidden="true"><div class="preloader__mark"></div><div class="preloader__name">Marta Coelho</div></div>
+  <div id="site-header"></div>
+
+  <main>
+    <!-- 1. Banner (título e botão) -->
+    <section class="hero" aria-label="Marta Coelho">
+      <div class="hero__panels">
+        <div class="hero__panel">
+          <div class="hero__cap">
+            <h1>Feito à mão, cheio de cor</h1>
+            <a class="btn" href="colecao.html?c=todos">Descobrir a loja <svg class="arrow" width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M0 5h16M12 1l4 4-4 4"/></svg></a>
+          </div>
+        </div>
+        <div class="hero__panel"><a class="hero__label" href="colecao.html?c=inverno">Novidades</a></div>
+      </div>
+    </section>
+
+    <!-- 2. Texto introdutório sobre a marca -->
+    <section class="intro2 reveal">
+      <h2 class="home-h">Marta Coelho</h2>
+      <p>Somos uma marca portuguesa de moda sustentável. Desenhamos peças coloridas e confortáveis, feitas à mão em Portugal com linho, algodão orgânico, bambu, cortiça e burel, e com tecidos deadstock que, de outra forma, iriam para aterro.</p>
+      <a class="btn btn--outline" href="sobre.html">Sobre nós</a>
+    </section>
+
+    <!-- 3. Destaques de novidades -->
+    <section class="home-sec">
+      <div class="home-head wrap"><h2 class="home-h">Novidades</h2><a class="link" href="colecao.html?c=inverno">Ver tudo</a></div>
+      <div class="plp" id="newGrid"></div>
+    </section>
+
+    <!-- 4. Destaque: tote bags e bolsas -->
+    <a class="banner-wide" id="bagsBanner" href="colecao.html?c=malas">
+      <div class="banner-wide__cap"><h2>Tote bags e bolsas</h2><span>Ver malas</span></div>
+    </a>
+
+    <section class="cats-sec" aria-label="Categorias">
+      <div class="cats" id="cats"></div>
+    </section>
+
+    <!-- 5. Informações relevantes -->
+    <section class="pillars" id="pillars" aria-label="Informações"></section>
+
+    <!-- 6. Testemunhos -->
+    <section class="quotes section" aria-label="Testemunhos" style="background:var(--grey)">
+      <h2 class="home-h">O que dizem as clientes</h2>
+      <div class="quotes__stage" id="quotes" aria-live="polite"></div>
+      <div class="quotes__nav"><button id="quotePrev" aria-label="Anterior"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 5l-7 7 7 7"/></svg></button><button id="quoteNext" aria-label="Seguinte"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 5l7 7-7 7"/></svg></button></div>
+    </section>
+
+    <!-- 7. Instagram: conteúdos em destaque -->
+    <section class="section">
+      <div class="ig__head wrap"><h2 class="home-h">Em destaque no Instagram</h2><p><a href="https://www.instagram.com/bymartacoelho/" target="_blank" rel="noopener"><u>@bymartacoelho</u></a></p></div>
+      <div class="ig6 wrap" id="igGrid"></div>
+    </section>
+  </main>
+
+  <!-- 8. Rodapé -->
+  <div id="site-footer"></div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
