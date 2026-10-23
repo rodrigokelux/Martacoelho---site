@@ -118,8 +118,8 @@
       </header>
       <nav class="drawer-nav" id="drawerNav" aria-label="Menu móvel">
         <button class="icon-btn drawer-nav__close" id="menuClose" aria-label="Fechar menu">${ICON.close}</button>
-        <a class="big" href="colecao.html?c=inverno">Inverno 25/26</a>
-        <a class="big" href="colecao.html?c=todos">Loja</a>
+        <a class="big" href="colecao.html?c=inverno">Novidades</a>
+        <a class="big" href="colecao.html?c=todos">Vestuário</a>
         <a class="big" href="colecao.html?c=malas">Malas</a>
         <a class="big" href="sobre.html">Sobre nós</a>
         <a class="big" href="lojas.html">Lojas</a>
@@ -142,8 +142,7 @@
         <div class="search__results" id="searchResults"></div>
       </div>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
-      <div class="cursor" id="cursor" aria-hidden="true">Ver</div>
-      <div class="curtain" id="curtain" aria-hidden="true"></div>`;
+      <div class="cursor" id="cursor" aria-hidden="true">Ver</div>`;
 
     const footer = $('#site-footer');
     if (footer) footer.outerHTML = `
@@ -350,8 +349,13 @@
 
     // menu móvel
     const drawer = $('#drawerNav');
-    $('#menuBtn').addEventListener('click', () => { drawer.classList.add('is-open'); $('#menuBtn').setAttribute('aria-expanded', 'true'); document.documentElement.style.overflow = 'hidden'; });
-    $('#menuClose').addEventListener('click', () => { drawer.classList.remove('is-open'); $('#menuBtn').setAttribute('aria-expanded', 'false'); document.documentElement.style.overflow = ''; });
+    const setMenu = open => {
+      drawer.classList.toggle('is-open', open); $('#menuBtn').setAttribute('aria-expanded', open);
+      $('#overlay').classList.toggle('is-on', open); document.documentElement.style.overflow = open ? 'hidden' : '';
+    };
+    $('#menuBtn').addEventListener('click', () => setMenu(true));
+    $('#menuClose').addEventListener('click', () => setMenu(false));
+    $('#overlay').addEventListener('click', () => setMenu(false));
 
     // carrinho
     $('#cartBtn').addEventListener('click', () => openPanel($('#cart')));
@@ -387,18 +391,6 @@
         toast(demo.dataset.demo === 'checkout' ? 'Na versão final, este botão segue para o checkout seguro.' : 'Página disponível na versão final do site.');
       }
     });
-
-    // transição de página com cortina laranja
-    document.addEventListener('click', e => {
-      const a = e.target.closest('a[href]');
-      if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank') return;
-      const url = new URL(a.href, location.href);
-      if (url.origin !== location.origin || a.hasAttribute('data-demo') || url.href.split('#')[0] === location.href.split('#')[0] || !/\.html$|\/$/.test(url.pathname) || reduced) return;
-      e.preventDefault();
-      $('#curtain').classList.add('is-in');
-      setTimeout(() => { location.href = a.href; }, 520);
-    });
-    addEventListener('pageshow', e => { if (e.persisted) $('#curtain').classList.remove('is-in'); });
 
     // cursor "Ver" sobre imagens de produto
     const cursor = $('#cursor');
@@ -548,9 +540,9 @@
 
     // Banner: dois painéis com fotografias de várias coleções
     const HERO = [
-      ['BlazerTRIVIAVerdeasRiscas-Imagem1.jpg', 'IMG_3452.heic'],
-      ['IMG01905-3.jpg', 'IMG_3167.heic'],
-      ['CamisaTRIVIAPintasVermelhas-Imagem1.jpg', 'IMG_33282.heic']
+      ['IMG_3452.heic', 'BlazerTRIVIAVerdeasRiscas-Imagem1.jpg'],
+      ['BlazerTRIVIABrancoTerracota-Imagem1.jpg', 'IMG_3167.heic'],
+      ['CamisaTRIVIAPintasVermelhas-Imagem1.jpg', 'IMG_14292.heic']
     ];
     const panels = $$('.hero__panel');
     HERO.forEach((pair, i) => pair.forEach((f, k) => {
@@ -921,15 +913,5 @@
   bindParallax();
   bindForms();
 
-  // preloader: só na primeira visita da sessão
-  const pre = $('.preloader');
-  let seen = false; try { seen = sessionStorage.getItem('mc-pre') === '1'; } catch { /* sem armazenamento */ }
-  const start = () => requestAnimationFrame(() => document.body.classList.add('is-loaded'));
-  if (pre && !seen && !reduced) {
-    try { sessionStorage.setItem('mc-pre', '1'); } catch { /* sem armazenamento */ }
-    const done = () => { pre.classList.add('is-done'); setTimeout(start, 250); setTimeout(() => pre.remove(), 1200); };
-    if (document.readyState === 'complete') setTimeout(done, 1500);
-    else addEventListener('load', () => setTimeout(done, 900));
-    setTimeout(() => { if (!pre.classList.contains('is-done')) done(); }, 3200);
-  } else { pre?.remove(); start(); }
+  requestAnimationFrame(() => document.body.classList.add('is-loaded'));
 })();
