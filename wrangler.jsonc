@@ -1,8 +1,9 @@
 {
-  // Site estático publicado como Worker no Cloudflare (projeto "martacoelho")
+  // Site estático publicado como Worker no Cloudflare (projeto "martacoelho").
+  // O "npm run build" copia os ficheiros do site para dist/, que é o que é publicado.
   "name": "martacoelho",
   "compatibility_date": "2026-10-01",
   "assets": {
-    "directory": "./public"
+    "directory": "./dist"
   }
 }
