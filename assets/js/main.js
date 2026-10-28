@@ -53,82 +53,149 @@
     clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
     check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 5 5 9-10"/></svg>',
     mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
-    route: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/></svg>'
+    route: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/></svg>',
+    down: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 9 7 7 7-7"/></svg>'
   };
+
+  // Idioma: só o cabeçalho, os menus e o pop-up têm versão em inglês para já
+  const LANG = store.get('mc-lang', 'pt') === 'en' ? 'en' : 'pt';
+  const t = (pt, en) => LANG === 'en' ? en : pt;
+  const IG_URL = 'https://www.instagram.com/bymartacoelho/';
 
   /* ------------------------------------------------------------------------
      Cabeçalho, menus e rodapé (partilhados)
      ------------------------------------------------------------------------ */
   const page = document.body.dataset.page || '';
-  const cur = p => page === p ? ' aria-current="page"' : '';
   const megaImg = (h, i = 0) => { const p = byHandle(h); return p ? img(p.img[i], 700) : ''; };
+
+  // categorias de acessórios (para assinalar o menu certo na página de coleção)
+  const ACC_CATS = ['malas', 'vichy', 'fazenda', 'cortica', 'bolsas', 'mini-bolsas', 'lencos', 'chapeus'];
+  const qc = new URLSearchParams(location.search).get('c') || 'inverno';
+  const group = page === 'colecao' ? (ACC_CATS.includes(qc) ? 'acessorios' : ['inverno', 'malhas', 'calcoes'].includes(qc) ? 'vestuario' : '')
+    : page === 'sobre' || page === 'lojas' ? 'sobre' : '';
+  const cur = g => group === g ? ' aria-current="page"' : '';
+
+  // Menus: colunas de ligações e zonas em destaque (imagem ou, sem fotografia, bloco de cor)
+  const MENU = [
+    { id: 'vestuario', label: t('Vestuário', 'Garments'), href: 'colecao.html?c=inverno', cols: [
+      { h: t('Todas as peças', 'All pieces'), href: 'colecao.html?c=inverno', items: [
+        [t('Camisas e blusas', 'Shirts and blouses'), 'colecao.html?c=inverno&t=Blusa'],
+        [t('Malhas', 'Knitwear'), 'colecao.html?c=malhas'],
+        [t('Calças', 'Trousers'), 'colecao.html?c=inverno&t=Calças'],
+        [t('Vestidos', 'Dresses'), 'colecao.html?c=inverno&t=Vestido'],
+        [t('Casacos e blazers', 'Coats and blazers'), 'colecao.html?c=inverno&t=Casaco'],
+        [t('Calções', 'Shorts'), 'colecao.html?c=calcoes'],
+        [t('Preços especiais', 'Special prices'), 'colecao.html?c=promo', 'hot']
+      ] },
+      { h: t('Coleções', 'Collections'), items: [['Oliva · ' + t('Inverno', 'Winter') + ' 25/26', 'colecao.html?c=inverno']] }
+    ], tiles: [
+      [t('Casacos em burel', 'Burel coats'), 'colecao.html?c=inverno&t=Casaco', megaImg('casaco-burel-oversized-auranza-xadrez-colorido', 1)],
+      [t('Malhas em bambu', 'Bamboo knitwear'), 'colecao.html?c=malhas', megaImg('vestido-comprido-bambu-essenza-coral')]
+    ] },
+    { id: 'acessorios', label: t('Acessórios', 'Accessories'), href: 'colecao.html?c=malas', cols: [
+      { h: t('Malas', 'Bags'), href: 'colecao.html?c=malas', items: [
+        [t('Todas as tote bags', 'All tote bags'), 'colecao.html?c=malas&t=Tote bag', 'best'],
+        [t('Tote bags em vichy e xadrez', 'Gingham tote bag'), 'colecao.html?c=vichy'],
+        [t('Tote bags em fazenda', 'Wool cloth tote bags'), 'colecao.html?c=fazenda'],
+        [t('Tote bags em cortiça portuguesa', 'Portuguese cork tote bags'), 'colecao.html?c=cortica'],
+        ['Micro bags', 'colecao.html?c=malas&t=Mala']
+      ] },
+      { h: t('Bolsas', 'Pouches'), items: [
+        [t('Bolsas em vichy', 'Gingham pouches'), 'colecao.html?c=bolsas'],
+        [t('Mini bolsas em vichy', 'Mini gingham pouches'), 'colecao.html?c=mini-bolsas']
+      ] },
+      { h: t('Croché', 'Crochet'), items: [
+        [t('Lenços', 'Scarves'), 'colecao.html?c=lencos'],
+        [t('Chapéus', 'Hats'), 'colecao.html?c=chapeus']
+      ] }
+    ], tiles: [
+      [t('Tote bags em vichy', 'Gingham tote bags'), 'colecao.html?c=vichy', megaImg('tote-bag-seersucker-rosa-vermelho')],
+      // TODO(Marta): fotografia dos chapéus em croché
+      [t('Chapéus em croché', 'Crochet hats'), 'colecao.html?c=chapeus', '']
+    ] },
+    { id: 'sobre', label: t('Sobre', 'About'), href: 'sobre.html', cols: [
+      { h: t('Sobre Marta Coelho', 'About Marta Coelho'), href: 'sobre.html', items: [
+        [t('A nossa história', 'Our story'), 'sobre.html'],
+        [t('Sustentabilidade', 'Sustainability'), 'sobre.html#sustentabilidade'],
+        [t('Mercados e lojas', 'Markets and stores'), 'lojas.html'],
+        ['Blog', '#', 'demo']
+      ] }
+    ], tiles: [
+      [t('Mercado na LX Factory', 'Market at LX Factory'), 'lojas.html#lx-factory', img(CDN + 'IMG_6007_2.jpg', 700)]
+    ] }
+  ];
+  const megaLink = ([label, href, flag]) => `<li><a href="${href}"${flag === 'hot' ? ' class="is-hot"' : ''}${flag === 'demo' ? ' data-demo' : ''}>${label}${flag === 'best' ? '<em class="mega__tag">Best seller</em>' : ''}</a></li>`;
+  const megaTile = ([label, href, src]) => src
+    ? `<a class="mega__tile" href="${href}"><img src="${src}" alt="" loading="lazy"><span>${label}</span></a>`
+    : `<a class="mega__tile mega__tile--empty" href="${href}"><span>${label}</span></a>`;
+  const navItem = m => `
+            <div class="nav__item">
+              <a class="nav__link" href="${m.href}"${cur(m.id)}>${m.label}</a>
+              <div class="mega mega--${m.id}">
+                ${m.cols.map(c => `<div><h4>${c.href ? `<a href="${c.href}">${c.h}</a>` : c.h}</h4><ul>${c.items.map(megaLink).join('')}</ul></div>`).join('')}
+                ${m.tiles.map(megaTile).join('')}
+              </div>
+            </div>`;
+
+  // Seletores de moeda e idioma (canto direito da barra de anúncios)
+  const CURRENCIES = [['EUR', '€'], ['USD', '$'], ['GBP', '£']];
+  const LANGS = [['pt', 'Português'], ['en', 'English']];
+  const pickers = () => `
+    <div class="dd"><button type="button" class="dd__btn" aria-expanded="false" aria-label="${t('Moeda', 'Currency')}">EUR €${ICON.down}</button>
+      <ul class="dd__menu">${CURRENCIES.map(([c, s]) => `<li><button type="button"${c === 'EUR' ? ' class="is-on"' : ' data-demo="moeda"'}>${c} ${s}</button></li>`).join('')}</ul></div>
+    <div class="dd"><button type="button" class="dd__btn" aria-expanded="false" aria-label="${t('Idioma', 'Language')}">${LANG.toUpperCase()}${ICON.down}</button>
+      <ul class="dd__menu">${LANGS.map(([l, n]) => `<li><button type="button" data-lang="${l}"${l === LANG ? ' class="is-on"' : ''}>${n}</button></li>`).join('')}</ul></div>`;
 
   function renderChrome() {
     const header = $('#site-header');
     if (header) header.outerHTML = `
       <header class="header" id="header">
-        <div class="ann" role="region" aria-label="Avisos">
+        <div class="ann" role="region" aria-label="${t('Avisos', 'Notices')}">
+          <a class="ann__ig" href="${IG_URL}" target="_blank" rel="noopener" aria-label="Instagram">${ICON.ig}</a>
           <div class="ann__track">
-            <p class="ann__msg is-active">Portes grátis para Portugal a partir de 150&nbsp;€</p>
-            <p class="ann__msg">Trocas e devoluções em 14 dias</p>
-            <p class="ann__msg">Feito à mão em Portugal, peça a peça 🧡</p>
+            <p class="ann__msg is-active">${t('Receba 10% de desconto na sua primeira compra', 'Receive 10% off your first purchase')} | <button type="button" data-pop>${t('Registe-se', 'Sign up')}</button></p>
+            <p class="ann__msg">${t('Portes grátis para Portugal a partir de 150&nbsp;€', 'Worldwide shipping')}</p>
           </div>
+          <div class="ann__opts">${pickers()}</div>
         </div>
         <div class="header__bar">
-          <button class="icon-btn menu-btn" id="menuBtn" aria-label="Abrir menu" aria-expanded="false">${ICON.menu}</button>
-          <a class="logo" href="index.html" aria-label="Marta Coelho, página inicial"><span class="logo__mark" aria-hidden="true"></span><span class="logo__word">Marta Coelho</span></a>
-          <nav class="nav" aria-label="Principal">
-            <div class="nav__item">
-              <a class="nav__link" href="colecao.html?c=inverno"${cur('colecao')}>Coleções</a>
-              <div class="mega">
-                <div>
-                  <h4>Coleções</h4>
-                  <ul>
-                    <li><a href="colecao.html?c=inverno">Oliva · Inverno 25/26</a></li>
-                    <li><a href="colecao.html?c=inverno&l=Auranza">Auranza</a></li>
-                    <li><a href="colecao.html?c=inverno&l=Luranza">Luranza</a></li>
-                    <li><a href="colecao.html?c=inverno&l=Essenza">Essenza</a></li>
-                    <li><a href="colecao.html?c=inverno&l=Prenzia">Prenzia</a></li>
-                  </ul>
-                </div>
-                <div>
-                  <h4>Loja</h4>
-                  <ul>
-                    <li><a href="colecao.html?c=inverno&t=Casaco">Casacos</a></li>
-                    <li><a href="colecao.html?c=inverno&t=Vestido">Vestidos</a></li>
-                    <li><a href="colecao.html?c=inverno&t=Blusa">Blusas e camisas</a></li>
-                    <li><a href="colecao.html?c=inverno&t=Saia">Saias e calças</a></li>
-                    <li><a href="colecao.html?c=malas">Malas</a></li>
-                  </ul>
-                </div>
-                <a class="mega__tile" href="colecao.html?c=inverno&t=Casaco"><img src="${megaImg('casaco-burel-oversized-auranza-xadrez-colorido', 1)}" alt="" loading="lazy"><span>Casacos em burel</span></a>
-                <a class="mega__tile" href="colecao.html?c=inverno&l=Essenza"><img src="${megaImg('vestido-comprido-bambu-essenza-coral')}" alt="" loading="lazy"><span>Malhas em bambu</span></a>
-              </div>
-            </div>
-            <div class="nav__item"><a class="nav__link" href="colecao.html?c=malas"${cur('malas')}>Malas</a></div>
-            <div class="nav__item"><a class="nav__link" href="sobre.html"${cur('sobre')}>Sobre</a></div>
+          <button class="icon-btn menu-btn" id="menuBtn" aria-label="${t('Abrir menu', 'Open menu')}" aria-expanded="false">${ICON.menu}</button>
+          <a class="logo" href="index.html" aria-label="Marta Coelho, ${t('página inicial', 'home page')}"><span class="logo__mark" aria-hidden="true"></span><span class="logo__word">Marta Coelho</span></a>
+          <nav class="nav" aria-label="Principal">${MENU.map(navItem).join('')}
           </nav>
           <div class="tools">
-            <a class="nav__link hide-m" href="lojas.html"${cur('lojas')} style="margin-right:14px">Lojas</a>
-            <button class="icon-btn" id="searchBtn" aria-label="Pesquisar">${ICON.search}</button>
-            <a class="icon-btn hide-m" href="#" aria-label="Conta" data-demo>${ICON.user}</a>
-            <button class="icon-btn" id="cartBtn" aria-label="Abrir carrinho">${ICON.bag}<span class="cart-count" id="cartCount">0</span></button>
+            <button class="search-btn" id="searchBtn" aria-label="${t('Pesquisar', 'Search')}">${ICON.search}<span class="hide-m">${t('Pesquisa', 'Search')}</span></button>
+            <a class="icon-btn hide-m" href="#" aria-label="${t('Conta', 'Account')}" data-demo>${ICON.user}</a>
+            <a class="icon-btn hide-m" href="colecao.html?c=favoritos" aria-label="${t('Favoritos', 'Wishlist')}">${ICON.heart}</a>
+            <button class="icon-btn" id="cartBtn" aria-label="${t('Abrir carrinho', 'Open cart')}">${ICON.bag}<span class="cart-count" id="cartCount">0</span></button>
           </div>
         </div>
       </header>
       <nav class="drawer-nav" id="drawerNav" aria-label="Menu móvel">
-        <button class="icon-btn drawer-nav__close" id="menuClose" aria-label="Fechar menu">${ICON.close}</button>
-        <a class="big" href="colecao.html?c=inverno">Coleção de Inverno</a>
-        <a class="big" href="colecao.html?c=todos">Vestuário</a>
-        <a class="big" href="colecao.html?c=malas">Malas</a>
-        <a class="big" href="sobre.html">Sobre nós</a>
-        <a class="big" href="lojas.html">Lojas</a>
-        <a class="big" href="sobre.html#contactos">Contactos</a>
+        <button class="icon-btn drawer-nav__close" id="menuClose" aria-label="${t('Fechar menu', 'Close menu')}">${ICON.close}</button>
+        <a class="big" href="colecao.html?c=inverno">${t('Vestuário', 'Garments')}</a>
+        <a class="big" href="colecao.html?c=malas">${t('Acessórios', 'Accessories')}</a>
+        <a class="big" href="colecao.html?c=promo">${t('Preços especiais', 'Special prices')}</a>
+        <a class="big" href="sobre.html">${t('A nossa história', 'Our story')}</a>
+        <a class="big" href="lojas.html">${t('Mercados e lojas', 'Markets and stores')}</a>
+        <a class="big" href="colecao.html?c=favoritos">${t('Favoritos', 'Wishlist')}</a>
+        <a class="big" href="sobre.html#contactos">${t('Contactos', 'Contacts')}</a>
+        <div class="drawer-nav__opts">${pickers()}</div>
         <div class="drawer-nav__foot">
           <a href="mailto:customercare@martacoelho.com">customercare@martacoelho.com</a>
-          <a href="https://www.instagram.com/bymartacoelho/" target="_blank" rel="noopener">@bymartacoelho</a>
+          <a href="${IG_URL}" target="_blank" rel="noopener">@bymartacoelho</a>
         </div>
       </nav>
+      <div class="pop" id="pop" role="dialog" aria-label="Newsletter" aria-hidden="true" data-news-wrap>
+        <button type="button" class="icon-btn pop__close" id="popClose" aria-label="${t('Fechar', 'Close')}">${ICON.close}</button>
+        <h3>${t('Junte-se à comunidade', 'Join us')}</h3>
+        <p>${t('Descubra todas as novidades e criações MARTA COELHO.', 'Discover all the news and MARTA COELHO\'s creations.')}<br>${t('Registe-se e receba 10% de desconto na sua primeira encomenda.', 'Sign up and get 10% off your first order.')}</p>
+        <form data-news novalidate>
+          <label class="sr-only" for="popEmail">E-mail</label><input id="popEmail" type="email" required placeholder="${t('Endereço de e-mail', 'Email address')}" autocomplete="email">
+          <button class="btn btn--orange btn--block" type="submit">${t('Inscrever', 'Sign up')}</button>
+        </form>
+        <p class="news-ok">${t('Obrigada! Verifique o seu e-mail 🧡', 'Thank you! Please check your email 🧡')}</p>
+      </div>
       <div class="overlay" id="overlay"></div>
       <aside class="cart" id="cart" aria-label="Carrinho" aria-hidden="true">
         <div class="cart__head"><h2>Carrinho</h2><button class="icon-btn" id="cartClose" aria-label="Fechar carrinho">${ICON.close}</button></div>
@@ -171,7 +238,7 @@
                 <li><a href="colecao.html?c=todos">Vestuário</a></li>
                 <li><a href="colecao.html?c=malas">Malas</a></li>
                 <li><a href="#" data-demo>Cartão-presente</a></li>
-                <li><a href="#" data-demo>Preços especiais</a></li>
+                <li><a href="colecao.html?c=promo">Preços especiais</a></li>
               </ul>
             </div>
             <div>
@@ -179,7 +246,7 @@
               <ul>
                 <li><a href="sobre.html">Sobre nós</a></li>
                 <li><a href="sobre.html#sustentabilidade">Sustentabilidade</a></li>
-                <li><a href="lojas.html">Onde nos encontrar</a></li>
+                <li><a href="lojas.html">Mercados e lojas</a></li>
                 <li><a href="https://www.instagram.com/bymartacoelho/" target="_blank" rel="noopener">Instagram</a></li>
               </ul>
             </div>
@@ -347,6 +414,29 @@
       ai = (ai + 1) % msgs.length; msgs[ai].classList.add('is-active');
     }, 4200);
 
+    // seletores de moeda e idioma
+    const closeDd = () => $$('.dd.is-open').forEach(d => { d.classList.remove('is-open'); $('.dd__btn', d).setAttribute('aria-expanded', 'false'); });
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('.dd__btn');
+      const lang = e.target.closest('[data-lang]');
+      if (lang) { store.set('mc-lang', lang.dataset.lang); location.reload(); return; }
+      if (!btn) { closeDd(); return; }
+      const dd = btn.closest('.dd'), open = !dd.classList.contains('is-open');
+      closeDd(); dd.classList.toggle('is-open', open); btn.setAttribute('aria-expanded', open);
+    });
+    addEventListener('scroll', closeDd, { passive: true });
+
+    // pop-up de registo: abre sozinho na primeira visita, ou pelo "Registe-se" da barra
+    const pop = $('#pop');
+    const setPop = on => { pop.classList.toggle('is-on', on); pop.setAttribute('aria-hidden', !on); };
+    $$('[data-pop]').forEach(b => b.addEventListener('click', () => { setPop(true); setTimeout(() => $('#popEmail').focus(), 400); }));
+    $('#popClose').addEventListener('click', () => { setPop(false); if (!store.get('mc-pop')) store.set('mc-pop', 'closed'); });
+    $('form', pop).addEventListener('submit', () => {
+      if (!$('#popEmail').checkValidity()) return;
+      store.set('mc-pop', 'done'); setTimeout(() => setPop(false), 3500);
+    });
+    if (!store.get('mc-pop')) setTimeout(() => setPop(true), 6000);
+
     // menu móvel
     const drawer = $('#drawerNav');
     const setMenu = open => {
@@ -372,7 +462,7 @@
     $('#searchClose').addEventListener('click', closePanels);
     $('#searchInput').addEventListener('input', e => runSearch(e.target.value));
     $$('.search__chips .chip').forEach(c => c.addEventListener('click', () => { $('#searchInput').value = c.dataset.q; runSearch(c.dataset.q); }));
-    addEventListener('keydown', e => { if (e.key === 'Escape') { closePanels(); $('#drawerNav').classList.remove('is-open'); document.documentElement.style.overflow = ''; } });
+    addEventListener('keydown', e => { if (e.key === 'Escape') { closePanels(); closeDd(); setPop(false); $('#drawerNav').classList.remove('is-open'); document.documentElement.style.overflow = ''; } });
 
     // adicionar rápido a partir dos cartões (delegado)
     document.addEventListener('click', e => {
@@ -388,7 +478,9 @@
       const demo = e.target.closest('[data-demo]');
       if (demo) {
         e.preventDefault();
-        toast(demo.dataset.demo === 'checkout' ? 'Na versão final, este botão segue para o checkout seguro.' : 'Página disponível na versão final do site.');
+        toast(demo.dataset.demo === 'checkout' ? 'Na versão final, este botão segue para o checkout seguro.'
+          : demo.dataset.demo === 'moeda' ? 'Os preços noutras moedas ficam disponíveis com a loja online final.'
+            : 'Página disponível na versão final do site.');
       }
     });
 
@@ -552,20 +644,18 @@
   function initHome() {
     document.body.classList.add('has-hero');
 
-    // Banner: dois painéis com fotografias de várias coleções
-    const HERO = [
-      ['IMG_3452.heic', 'BlazerTRIVIABrancoTerracota-Imagem1.jpg'],
-      ['CamisaTRIVIAPintasVermelhas-Imagem1.jpg', 'IMG_3167.heic']
-    ];
-    const panels = $$('.hero__panel');
-    HERO.forEach((pair, i) => pair.forEach((f, k) => {
+    // Banner: uma imagem de cada vez, alternando entre duas
+    // TODO(Marta): substituir pelas fotografias da coleção Outono/Inverno 25/26
+    const HERO = ['IMG_3452.heic', 'IMG_3167.heic'];
+    const panel = $('.hero__panel');
+    panel.insertAdjacentHTML('afterbegin', HERO.map((f, i) => {
       const u = CDN + f;
-      panels[k].insertAdjacentHTML('afterbegin', `<div class="hero__slide${i === 0 ? ' is-active' : ''}"><img src="${img(u, 1400)}" srcset="${srcset(u, [700, 1000, 1400, 1900])}" sizes="(max-width: 900px) 100vw, 50vw" alt="" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}></div>`);
-    }));
+      return `<div class="hero__slide${i === 0 ? ' is-active' : ''}"><img src="${img(u, 1900)}" srcset="${srcset(u, [700, 1000, 1400, 1900, 2400])}" sizes="(min-width: 901px) 50vw, 100vw" alt="" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}></div>`;
+    }).join(''));
     let hi = 0;
     if (!reduced) setInterval(() => {
       hi = (hi + 1) % HERO.length;
-      panels.forEach((pn, k) => $$('.hero__slide', pn).forEach((s, i) => setTimeout(() => s.classList.toggle('is-active', i === hi), k * 300)));
+      $$('.hero__slide', panel).forEach((s, i) => s.classList.toggle('is-active', i === hi));
     }, 6500);
 
     // Novidades
@@ -583,14 +673,14 @@
 
 
     // Destaque das malas
-    const BANNER = [['tote-bag-cortica-fragments-gold-caramel', 1], ['mini-tote-bag-cortica-fragments-gold-green', 1], ['mala-pequena-burel-micro-cutie-green', 0]];
+    const BANNER = [['tote-bag-cortica-fragments-gold', 0], ['mala-pequena-burel-micro-cutie-blue', 0], ['tote-bag-seersucker-rosa-vermelho', 0]];
     $('#bagsBanner').insertAdjacentHTML('afterbegin', BANNER.map(([h, i]) => { const p = byHandle(h); return `<img src="${img(p.img[i], 900)}" srcset="${srcset(p.img[i], [500, 900, 1300])}" sizes="(max-width: 900px) 100vw, 33vw" alt="" loading="lazy">`; }).join(''));
 
     // Informações relevantes (com imagem, como na Deadly Ponies)
     const PILLARS = [
       ['Feito à mão', 'Todas as peças são feitas à mão em Portugal, com técnicas que reduzem o desperdício.', CDN + 'IMG_1494.heic', 'sobre.html'],
       ['Sustentabilidade', 'Materiais certificados, tecidos deadstock e uma abordagem zero waste.', 'tote-bag-cortica-fragments-gold-caramel:2', 'sobre.html#sustentabilidade'],
-      ['Onde nos encontrar', 'Concept stores em Lisboa, Cascais, Porto, Coimbra e Pombal.', CDN + 'IMG_6007_2.jpg', 'lojas.html'],
+      ['Onde nos encontrar', 'Showroom, mercados e concept stores em Lisboa, Porto e Pombal.', CDN + 'IMG_6007_2.jpg', 'lojas.html'],
       ['Portes grátis', 'Envios gratuitos para Portugal continental a partir de 150 €.', CDN + 'DSC_0627.jpg', 'colecao.html?c=todos'],
       ['Trocas e devoluções', '14 dias para trocar ou devolver, com embalagens recicláveis.', CDN + 'Marta_Coelho_Brand.jpg', 'sobre.html#contactos']
     ];
@@ -634,25 +724,40 @@
      ======================================================================== */
   function initCollection() {
     const q = new URLSearchParams(location.search);
-    const c = q.get('c') || 'inverno';
-    const META = {
-      inverno: { crumb: 'Vestuário', title: 'Coleção Outono–Inverno', desc: 'Casacos em burel da Serra da Estrela e lã, malhas de bambu e viscose EcoVero. Peças largas, quentes e cheias de cor, feitas à mão em Portugal.' },
-      malas: { crumb: 'Malas', title: 'Tote bags e bolsas', desc: 'Em cortiça portuguesa, piñatex e burel, com forro em algodão orgânico. Leves, resistentes e feitas à mão, uma a uma.' },
-      todos: { crumb: 'Loja', title: 'Toda a loja', desc: 'Vestuário e malas, desenhados por Marta Coelho e feitos à mão em Portugal.' }
-    }[c] || {};
-    const TYPE_LABEL = { Casaco: 'Casacos', Vestido: 'Vestidos', Blusa: 'Blusas e camisas', Saia: 'Saias e calças', 'Tote bag': 'Tote bags', Mala: 'Micro bags' };
-    const typeOf = p => /Blusa|Camisa/.test(p.type) ? 'Blusa' : /Saia|Calças/.test(p.type) ? 'Saia' : p.type;
-    document.body.dataset.page = c === 'malas' ? 'malas' : 'colecao';
+    const wish = store.get('mc-wish', []);
+    const soon = 'Estamos a preparar estas peças. Em breve na loja.';
+    const none = () => false;
+    const CATS = {
+      inverno: { crumb: 'Vestuário', title: 'Coleção Outono–Inverno', desc: 'Casacos em burel da Serra da Estrela e lã, malhas de bambu e viscose EcoVero. Peças largas, quentes e cheias de cor, feitas à mão em Portugal.', f: p => p.collection === 'inverno' },
+      malhas: { crumb: 'Vestuário', title: 'Malhas', desc: 'Malhas em bambu, leves, macias e confortáveis, feitas à mão em Portugal.', f: p => p.collection === 'inverno' && p.material === 'Bambu' },
+      calcoes: { crumb: 'Vestuário', title: 'Calções', desc: soon, f: none },
+      malas: { crumb: 'Acessórios', title: 'Tote bags e bolsas', desc: 'Em cortiça portuguesa, piñatex e burel, com forro em algodão orgânico. Leves, resistentes e feitas à mão, uma a uma.', f: p => p.collection === 'malas' },
+      vichy: { crumb: 'Acessórios', title: 'Tote bags em vichy e xadrez', desc: 'Tote bags em tecido aos quadrados, leves e alegres, com espaço para tudo o que precisa no dia a dia.', f: p => p.line === 'Seersucker' },
+      fazenda: { crumb: 'Acessórios', title: 'Tote bags em fazenda', desc: soon, f: none },
+      cortica: { crumb: 'Acessórios', title: 'Tote bags em cortiça portuguesa', desc: 'Tote bags em tecido de cortiça portuguesa, com forro em algodão orgânico.', f: p => p.type === 'Tote bag' && p.material === 'Cortiça' },
+      bolsas: { crumb: 'Acessórios', title: 'Bolsas em vichy', desc: soon, f: none },
+      'mini-bolsas': { crumb: 'Acessórios', title: 'Mini bolsas em vichy', desc: soon, f: none },
+      lencos: { crumb: 'Acessórios', title: 'Lenços em croché', desc: soon, f: none },
+      chapeus: { crumb: 'Acessórios', title: 'Chapéus em croché', desc: soon, f: none },
+      promo: { crumb: 'Loja', title: 'Preços especiais', desc: 'Peças com preço especial, enquanto houver stock.', f: p => !!p.was },
+      favoritos: { crumb: 'Loja', title: 'Favoritos', desc: 'As peças que guardou. Toque no coração de uma peça para a juntar aqui.', f: p => wish.includes(p.h) },
+      todos: { crumb: 'Loja', title: 'Toda a loja', desc: 'Vestuário e malas, desenhados por Marta Coelho e feitos à mão em Portugal.', f: () => true }
+    };
+    const c = CATS[q.get('c')] ? q.get('c') : 'inverno';
+    const META = CATS[c];
+    const TYPE_LABEL = { Casaco: 'Casacos e blazers', Vestido: 'Vestidos', Blusa: 'Camisas e blusas', Saia: 'Saias', 'Calças': 'Calças', 'Tote bag': 'Tote bags', Mala: 'Micro bags' };
+    const typeOf = p => /Blusa|Camisa/.test(p.type) ? 'Blusa' : p.type;
+    document.body.dataset.page = META.crumb === 'Acessórios' ? 'malas' : 'colecao';
     document.title = `${META.title} | Marta Coelho`;
 
-    const base = PRODUCTS.filter(p => c === 'todos' || p.collection === c);
+    const base = PRODUCTS.filter(META.f);
     const state = { sort: 'feat', t: new Set(q.get('t') ? [q.get('t')] : []), l: new Set(q.get('l') ? [q.get('l')] : []), col: new Set(), stock: false };
     const heading = () => state.t.size === 1 && !state.l.size ? TYPE_LABEL[[...state.t][0]] : state.l.size === 1 && !state.t.size ? `Linha ${[...state.l][0]}` : META.title;
 
     // gaveta de filtros
     const count = (fn) => base.filter(fn).length;
     const types = [...new Set(base.map(typeOf))];
-    const lines = [...new Set(base.map(p => p.line).filter(Boolean))].filter(l => c !== 'malas');
+    const lines = [...new Set(base.map(p => p.line).filter(Boolean))].filter(() => META.crumb !== 'Acessórios');
     const colors = [...new Set(base.map(p => p.color).filter(x => x && SWATCH[x.toLowerCase()]))];
     const box = (name, v, label, n, extra = '') => `<label class="check"><input type="checkbox" name="${name}" value="${esc(v)}">${extra}${label}<small>${n}</small></label>`;
     $('#filtersForm').innerHTML = `
@@ -692,12 +797,13 @@
       $('#crumbs').innerHTML = `<a href="index.html">Início</a><span>${META.crumb}</span>${heading() !== META.title ? `<span>${esc(heading())}</span>` : ''}`;
       const cards = list.map(pcard);
       // imagem editorial ocupa duas colunas, como nas referências
-      if (!active && cards.length > 8) {
-        const e = c === 'malas' ? ['tote-bag-cortica-pure-burgundy', 1, 'Cortiça portuguesa', 'colecao.html?c=malas&t=Tote bag'] : ['casaco-burel-oversized-auranza-xadrez-colorido', 5, 'Casacos em burel', 'colecao.html?c=inverno&t=Casaco'];
+      const e = { malas: ['tote-bag-cortica-pure-burgundy', 1, 'Cortiça portuguesa', 'colecao.html?c=cortica'], inverno: ['casaco-burel-oversized-auranza-xadrez-colorido', 5, 'Casacos em burel', 'colecao.html?c=inverno&t=Casaco'] }[c];
+      if (e && !active && cards.length > 8) {
         const p = byHandle(e[0]);
         cards.splice(4, 0, `<a class="plp__edit" href="${e[3]}"><img src="${img(p.img[e[1]], 1400)}" srcset="${srcset(p.img[e[1]], [700, 1000, 1400])}" sizes="(max-width: 900px) 100vw, 50vw" alt="" loading="lazy"><span>${e[2]}</span></a>`);
       }
-      $('#grid').innerHTML = cards.length ? cards.join('') : '<p class="grid-empty">Não há peças com estes filtros.</p>';
+      const empty = !base.length ? (c === 'favoritos' ? 'Ainda não guardou nenhuma peça nos favoritos.' : 'Em breve: estamos a preparar estas peças.') : 'Não há peças com estes filtros.';
+      $('#grid').innerHTML = cards.length ? cards.join('') : `<p class="grid-empty">${empty}</p>`;
     }
     render();
   }
@@ -870,31 +976,29 @@
   function initStores() {
     // TODO(Marta): substituir as imagens pelas fotografias de cada loja
     const STORES = [
-      { city: 'Lisboa', name: 'Etikway Store — EmbaiXada', type: 'Concept store', addr: ['LX Portuguese Concept Gallery', 'Praça do Príncipe Real, 26', '1250-184 Lisboa'], desc: 'No Príncipe Real, a EmbaiXada reúne dezenas de marcas e criadores portugueses num palacete do século XIX. A Etikway Store dedica-se à moda sustentável feita em Portugal.', img: ['casaco-burel-oversized-auranza-xadrez-colorido', 1] },
-      { city: 'Lisboa', name: 'Etikway Store — Castil', type: 'Loja de moda sustentável', addr: ['Castil Shopping Center', 'Rua Castilho, 39', '1250-068 Lisboa'], desc: 'Junto ao Marquês de Pombal, no centro comercial Castil. Uma seleção de marcas portuguesas com produção ética e consciente.', img: ['vestido-comprido-bambu-essenza-verde', 1] },
-      { city: 'Cascais', name: 'Etikway Store — CascaiShopping', type: 'Loja de moda sustentável', addr: ['CascaiShopping', 'Estrada Nacional 9', '2645-543 Alcabideche'], desc: 'No CascaiShopping, com estacionamento fácil. Encontre aqui uma seleção de peças e malas Marta Coelho.', img: ['casaco-la-oversized-luranza-azul-escuro', 1] },
-      { city: 'Porto', name: 'SCAR-ID', type: 'Design and Art Store Gallery', addr: ['Rua do Rosário, 253', '4050-124 Porto'], desc: 'Na zona das galerias de arte do Porto, perto da Rua de Miguel Bombarda. Loja e galeria dedicada ao design de autor português.', img: ['saia-midi-bambu-prenzia-lavanda', 1] },
-      { city: 'Coimbra', name: '100% Design de Moda Português', type: 'Concept store', addr: ['Edifício Cruzeiro, Rua Bernardo de Albuquerque', 'Largo Cruz de Celas, 4, loja 6', '3000-070 Coimbra'], desc: 'Em Celas, um espaço inteiramente dedicado a designers de moda portugueses.', img: ['vestido-comprido-bambu-essenza-coral', 2] },
-      { city: 'Pombal', name: 'Adora Concept Store', type: 'Concept store', addr: ['Rua Dr. Luís Torres, 9', '3100-464 Pombal'], desc: 'Na terra natal da Marta. Uma concept store com peças escolhidas a dedo e um carinho especial pela marca.', img: ['casaco-burel-oversized-auranza-bordo', 1] }
+      { id: 'showroom', city: 'Pombal', name: 'Showroom MARTA COELHO', type: 'Atendimento por marcação', addr: ['Rua Santa Luzia Nr 22', 'Escritório 2.20', '3100-483 Pombal'], map: 'Rua de Santa Luzia 22, 3100-483 Pombal', desc: 'Contactar o atendimento ao cliente para agendar a sua visita.', hours: 'Atendimento por marcação', mail: 'customercare@martacoelho.com', img: ['casaco-la-oversized-luranza-verde', 1] },
+      { id: 'lx-factory', city: 'Lisboa', name: 'Lx Factory', type: 'Mercado', addr: ['Rua Rodrigues Faria 103', '1300-501 Lisboa'], hours: 'Todos os domingos, das 10h às 18h', img: ['casaco-burel-oversized-auranza-xadrez-colorido', 1] },
+      { id: 'scar-id', city: 'Porto', name: 'SCAR-ID', type: 'Design and Art Store Gallery', addr: ['Rua do Rosário, 253', '4050-124 Porto'], desc: 'Na zona das galerias de arte do Porto, perto da Rua de Miguel Bombarda. Loja e galeria dedicada ao design de autor português.', img: ['saia-midi-bambu-prenzia-lavanda', 1] },
+      { id: 'adora', city: 'Pombal', name: 'Adora Concept Store', type: 'Concept store', addr: ['Rua Dr. Luís Torres, 9', '3100-464 Pombal'], desc: 'Na terra natal da Marta. Uma concept store com peças escolhidas a dedo e um carinho especial pela marca.', img: ['casaco-burel-oversized-auranza-bordo', 1] }
     ];
     const cities = [...new Set(STORES.map(s => s.city))];
     $('#storeFilter').innerHTML = `<button class="chip is-active" data-c="">Todas (${STORES.length})</button>` + cities.map(c => `<button class="chip" data-c="${c}">${c}</button>`).join('');
     $('#storeList').innerHTML = STORES.map((s, i) => {
-      const q = encodeURIComponent(`${s.name.split(' — ')[0]} ${s.addr.join(', ')}`);
+      const q = encodeURIComponent(s.map || `${s.name} ${s.addr.join(', ')}`);
       const p = byHandle(s.img[0]);
-      return `<article class="store reveal" data-city="${s.city}">
+      return `<article class="store reveal" id="${s.id}" data-city="${s.city}">
         <div class="store__img"><img src="${img(p.img[s.img[1]], 1000)}" alt="${esc(s.name)}" loading="lazy"><span class="store__city">${s.city}</span></div>
         <div class="store__info">
-          <span class="n">${String(i + 1).padStart(2, '0')}</span>
           <h2>${esc(s.name)}</h2>
           <span class="store__type">${esc(s.type)}</span>
-          <p>${esc(s.desc)}</p>
+          ${s.desc ? `<p>${esc(s.desc)}</p>` : ''}
           <ul class="store__meta">
             <li>${ICON.pin}<span>${s.addr.map(esc).join('<br>')}</span></li>
-            <li>${ICON.clock}<span>Consulte o horário da loja no Google Maps</span></li>
+            <li>${ICON.clock}<span>${esc(s.hours || 'Consulte o horário da loja no Google Maps')}</span></li>
+            ${s.mail ? `<li>${ICON.mail}<a href="mailto:${s.mail}"><u>${s.mail}</u></a></li>` : ''}
           </ul>
           <div class="store__actions">
-            <a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Como chegar ${ICON.arrow}</a>
+            <a class="btn btn--orange" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Como chegar ${ICON.arrow}</a>
             <a class="link" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Abrir no mapa</a>
           </div>
         </div>
@@ -915,15 +1019,17 @@
       $$('#storeFilter .chip').forEach(c => c.classList.toggle('is-active', c === b));
       $$('.store').forEach(s => { s.hidden = !!b.dataset.c && s.dataset.city !== b.dataset.c; });
     });
+    // as lojas são criadas aqui, por isso o salto para #lx-factory (vindo do menu) faz-se à mão
+    const target = location.hash && document.getElementById(location.hash.slice(1));
+    if (target) setTimeout(() => target.scrollIntoView({ block: 'start' }), 100);
   }
 
   /* ========================================================================
      SOBRE
      ======================================================================== */
   function initAbout() {
-    document.body.classList.add('has-hero');
     const set = (sel, h, i, w = 1200) => { const el = $(sel); const p = byHandle(h); if (el && p) { el.src = img(p.img[i], w); el.srcset = srcset(p.img[i], [600, 900, 1300]); } };
-    set('#aboutImg', 'casaco-la-oversized-luranza-verde', 0);
+    // TODO(Marta): substituir pela nova imagem da história
     set('#storyImg', 'blusa-oversized-bambu-essenza-branco', 1, 900);
     const tl = $('.timeline'), tt = $('.timeline__track');
     bindRail(tl);
