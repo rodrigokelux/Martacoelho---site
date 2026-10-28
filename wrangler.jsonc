@@ -1,0 +1,8 @@
+{
+  // Site estático publicado como Worker no Cloudflare (projeto "martacoelho")
+  "name": "martacoelho",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public"
+  }
+}

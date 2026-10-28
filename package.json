@@ -1,0 +1,7 @@
+{
+  "name": "martacoelho-site",
+  "private": true,
+  "scripts": {
+    "build": "echo \"Site estático: nada para compilar\""
+  }
+}
