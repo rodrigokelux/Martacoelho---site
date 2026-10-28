@@ -409,8 +409,10 @@ input, select, textarea { font: inherit; color: inherit; }
 .footer__bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding-block: 22px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-soft); }
 .footer__bottom nav { display: flex; flex-wrap: wrap; gap: 6px 20px; }
 .footer__bottom a:hover { color: var(--ink); }
-.pay { display: flex; flex-wrap: wrap; gap: 6px; }
-.pay span { padding: 4px 8px; box-shadow: inset 0 0 0 1px var(--line); font-size: 10px; font-weight: 700; letter-spacing: .04em; color: var(--ink); }
+.pay { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; }
+.pay img { height: 22px; width: auto; max-width: 64px; object-fit: contain; }
+.pay .pay--multibanco { height: 30px; }
+.pay .pay--klarna { height: 24px; }
 
 /* ==========================================================================
    Gaveta do carrinho
@@ -707,21 +709,18 @@ input, select, textarea { font: inherit; color: inherit; }
 .eco__head .display em { color: var(--orange); }
 .eco__head p { color: var(--ink-soft); margin: 0; }
 .eco__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
-.eco__card { background: var(--white); padding: clamp(28px, 3vw, 44px); min-height: 280px; display: flex; flex-direction: column; transition: background-color .5s var(--ease); }
+.eco__card { background: var(--white); padding: clamp(28px, 3vw, 44px); display: flex; flex-direction: column; transition: background-color .5s var(--ease); }
 .eco__card:hover { background: var(--pink-soft); }
-.eco__card .n { font-family: var(--f-display); font-size: 15px; color: var(--orange); margin-bottom: auto; padding-bottom: 40px; }
 .eco__card h3 { font-size: clamp(24px, 2.2vw, 32px); margin-bottom: 12px; }
 .eco__card p { margin: 0; color: var(--ink-soft); font-size: 14px; }
 .fabrics { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 56px; }
 .fabrics span { padding: 12px 20px; box-shadow: inset 0 0 0 1.5px var(--line); font-family: var(--f-display); font-size: 20px; transition: background-color .3s, color .3s; }
 .fabrics span:hover { background: var(--orange); color: var(--white); box-shadow: none; }
 .contacts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-.contact-card { padding: clamp(28px, 4vw, 52px); background: var(--white); display: grid; gap: 10px; transition: transform .5s var(--ease), box-shadow .5s var(--ease); }
-.contact-card:hover { transform: translateY(-6px); box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .3); }
-.contact-card:nth-child(2) { background: var(--pink); }
+.contact-card { padding: clamp(28px, 4vw, 52px); background: var(--pink-soft); border-top: 3px solid var(--orange); display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
 .contact-card h3 { font-size: clamp(26px, 2.4vw, 36px); }
-.contact-card a.mail { font-size: clamp(16px, 1.5vw, 20px); font-weight: 600; color: var(--orange-deep); word-break: break-word; }
-.contact-card p { margin: 0; color: var(--ink-soft); }
+.contact-card .mail { margin-top: auto; max-width: 100%; text-transform: none; letter-spacing: .04em; overflow-wrap: anywhere; }
+.contact-card p { margin: 0 0 10px; color: var(--ink-soft); max-width: 48ch; }
 
 /* ==========================================================================
    Responsivo
@@ -850,7 +849,6 @@ input, select, textarea { font: inherit; color: inherit; }
   .story .intro__img { max-width: 300px !important; }
   .timeline b { font-size: 36px; }
   .eco__head { margin-bottom: 48px; }
-  .eco__card { min-height: 230px; }
   .eco__card h3 { font-size: clamp(22px, 1.8vw, 26px); }
   .fabrics { margin-top: 44px; }
   .fabrics span { font-size: 17px; padding: 10px 18px; }

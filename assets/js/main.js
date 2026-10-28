@@ -274,7 +274,7 @@
               <a href="#" data-demo>Privacidade</a>
               <a href="https://www.livroreclamacoes.pt" target="_blank" rel="noopener">Livro de Reclamações</a>
             </nav>
-            <div class="pay" aria-label="Métodos de pagamento"><span>MB WAY</span><span>Multibanco</span><span>Visa</span><span>Mastercard</span><span>PayPal</span><span>Apple Pay</span><span>Klarna</span></div>
+            <div class="pay" aria-label="Métodos de pagamento"><img src="assets/img/pay/mbway.svg" alt="MB WAY" title="MB WAY" class="pay--mbway" loading="lazy"><img src="assets/img/pay/multibanco.svg" alt="Multibanco" title="Multibanco" class="pay--multibanco" loading="lazy"><img src="assets/img/pay/visa.svg" alt="Visa" title="Visa" class="pay--visa" loading="lazy"><img src="assets/img/pay/mastercard.svg" alt="Mastercard" title="Mastercard" class="pay--mastercard" loading="lazy"><img src="assets/img/pay/paypal.svg" alt="PayPal" title="PayPal" class="pay--paypal" loading="lazy"><img src="assets/img/pay/applepay.svg" alt="Apple Pay" title="Apple Pay" class="pay--applepay" loading="lazy"><img src="assets/img/pay/klarna.svg" alt="Klarna" title="Klarna" class="pay--klarna" loading="lazy"></div>
           </div>
         </div>
       </footer>`;
