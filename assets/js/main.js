@@ -14,7 +14,6 @@
 
   const img = (u, w = 800) => u ? `${u}?width=${w}` : '';
   const srcset = (u, ws = [400, 700, 1000, 1400]) => ws.map(w => `${img(u, w)} ${w}w`).join(', ');
-  const money = n => n.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
   const byHandle = h => PRODUCTS.find(p => p.h === h);
   const inStock = p => p.sizes.some(s => s.ok);
   const siblings = p => PRODUCTS.filter(x => x.name === p.name && x.collection === p.collection);
@@ -29,6 +28,9 @@
     'castanho': '#5a3a2b', 'bege': '#d8c6ab', 'lavanda': '#a69ad6', 'branco': '#f4f1ea', 'azulão': '#2446c6',
     'xadrez colorido': 'conic-gradient(#e2477a 0 25%, #f1a518 0 50%, #3a8f6a 0 75%, #7b5fd0 0)'
   };
+  // as mesmas cores com o nome em inglês
+  Object.assign(SWATCH, { 'black': SWATCH.preto, 'dark blue': SWATCH['azul escuro'], 'green': SWATCH.verde, 'burgundy': SWATCH['bordô'], 'brown': SWATCH.castanho,
+    'beige': SWATCH.bege, 'lavender': SWATCH.lavanda, 'white': SWATCH.branco, 'royal blue': SWATCH['azulão'], 'colourful check': SWATCH['xadrez colorido'] });
   const swatchOf = c => SWATCH[(c || '').toLowerCase()] || '#cbb8a6';
 
   const ICON = {
@@ -57,9 +59,12 @@
     down: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 9 7 7 7-7"/></svg>'
   };
 
-  // Idioma: só o cabeçalho, os menus e o pop-up têm versão em inglês para já
+  // Idioma: o cabeçalho e os menus usam t(); o resto da página é traduzido por assets/js/i18n.js
   const LANG = store.get('mc-lang', 'pt') === 'en' ? 'en' : 'pt';
   const t = (pt, en) => LANG === 'en' ? en : pt;
+  const I18N = LANG === 'en' && window.MC_I18N;
+  if (I18N) PRODUCTS.forEach(I18N.product);
+  const money = n => n.toLocaleString(LANG === 'en' ? 'en-IE' : 'pt-PT', { style: 'currency', currency: 'EUR' });
   const IG_URL = 'https://www.instagram.com/bymartacoelho/';
 
   /* ------------------------------------------------------------------------
@@ -386,7 +391,7 @@
     const out = $('#searchResults');
     const n = q.trim().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
     if (!n) { out.innerHTML = ''; return; }
-    const hits = PRODUCTS.filter(p => [p.name, p.color, p.type, p.material, p.line, p.intro].join(' ').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').includes(n)).slice(0, 12);
+    const hits = PRODUCTS.filter(p => [p.name, p.color, p.type, p.material, p.line, p.intro, ...Object.values(p.pt || {})].join(' ').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').includes(n)).slice(0, 12);
     out.innerHTML = hits.length ? hits.map(p => productCard(p, { quick: false, sizes: '16vw' })).join('') : `<p class="grid-empty">Não encontrámos resultados para “${esc(q)}”.</p>`;
   }
 
@@ -1047,6 +1052,7 @@
   bindReveals();
   bindParallax();
   bindForms();
+  if (I18N) I18N.start();
 
   requestAnimationFrame(() => document.body.classList.add('is-loaded'));
 })();
