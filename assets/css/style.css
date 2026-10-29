@@ -721,6 +721,10 @@ input, select, textarea { font: inherit; color: inherit; }
 .contact-card h3 { font-size: clamp(26px, 2.4vw, 36px); }
 .contact-card .mail { margin-top: auto; max-width: 100%; text-transform: none; letter-spacing: .04em; overflow-wrap: anywhere; }
 .contact-card p { margin: 0 0 10px; color: var(--ink-soft); max-width: 48ch; }
+.contact-card--center { align-items: center; text-align: center; background: var(--pink); }
+.contact-card--center .h-md { max-width: 22ch; }
+.contact-card--center p { max-width: 56ch; }
+.contact-card--center .btn { margin-top: 6px; }
 
 /* ==========================================================================
    Responsivo
