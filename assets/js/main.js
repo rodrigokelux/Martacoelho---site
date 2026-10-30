@@ -219,7 +219,7 @@
       </div>
       <div class="overlay" id="overlay"></div>
       <aside class="cart" id="cart" aria-label="Carrinho" aria-hidden="true">
-        <div class="cart__head"><h2>Carrinho</h2><button class="icon-btn" id="cartClose" aria-label="Fechar carrinho">${ICON.close}</button></div>
+        <div class="cart__head"><button class="cart__close" id="cartClose" aria-label="Fechar carrinho">Fechar X</button><h2>Carrinho</h2></div>
         <div class="cart__ship" id="cartShip"></div>
         <div class="cart__items" id="cartItems"></div>
         <div class="cart__foot" id="cartFoot"></div>
@@ -362,13 +362,14 @@
     const items = $('#cartItems'); if (!items) return;
     const total = cartTotal();
     const left = Math.max(0, FREE_SHIP - total);
-    $('#cartShip').innerHTML = (left > 0
-      ? `Faltam <b>${money(left)}</b> para ter portes grátis em Portugal`
-      : 'Portes grátis para Portugal 🧡') +
-      `<div class="cart__bar"><i style="width:${Math.min(100, total / FREE_SHIP * 100)}%"></i></div>`;
+    $('#cartShip').innerHTML = !cart.length
+      ? `Portes grátis em Portugal a partir de ${money(FREE_SHIP)}`
+      : left > 0
+        ? `Faltam <b>${money(left)}</b> para ter portes grátis em Portugal`
+        : 'Portes grátis para Portugal 🧡';
     if (!cart.length) {
-      items.innerHTML = `<div class="cart__empty"><p>O carrinho está vazio</p><a class="btn" href="colecao.html?c=inverno">Ver novidades</a></div>`;
-      $('#cartFoot').innerHTML = '';
+      items.innerHTML = `<p class="cart__empty">O seu carrinho está vazio.</p>`;
+      $('#cartFoot').innerHTML = `<button class="btn btn--block btn--lg" data-close-cart>Continuar a comprar</button>`;
       return;
     }
     items.innerHTML = cart.map((i, idx) => {
@@ -383,6 +384,7 @@
     $('#cartFoot').innerHTML = `
       <div class="cart__total"><span>Subtotal</span><span>${money(total)}</span></div>
       <button class="btn btn--block btn--lg" data-demo="checkout">Finalizar compra</button>
+      <button class="cart__link" data-close-cart>Continuar a comprar</button>
       <small>Impostos incluídos. Portes calculados no checkout. Pagamento com MB WAY, Multibanco, cartão ou PayPal.</small>`;
   }
 
@@ -491,6 +493,7 @@
     // carrinho
     $('#cartBtn').addEventListener('click', () => openPanel($('#cart')));
     $('#cartClose').addEventListener('click', closePanels);
+    $('#cartFoot').addEventListener('click', e => { if (e.target.closest('[data-close-cart]')) closePanels(); });
     $('#overlay').addEventListener('click', closePanels);
     $('#cartItems').addEventListener('click', e => {
       const q = e.target.closest('[data-q]'), rm = e.target.closest('[data-rm]');
