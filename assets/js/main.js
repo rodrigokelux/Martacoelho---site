@@ -40,7 +40,6 @@
     bag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 8h14l-1 13H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>',
     menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h18M3 16h18"/></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m5 5 14 14M19 5 5 19"/></svg>',
-    arrow: '<svg class="arrow" width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M0 5h16M12 1l4 4-4 4"/></svg>',
     left: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 5l-7 7 7 7"/></svg>',
     right: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 5l7 7-7 7"/></svg>',
     ig: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>',
@@ -92,7 +91,7 @@
         [t('Calções', 'Shorts'), 'colecao.html?c=calcoes'],
         [t('Preços especiais', 'Special prices'), 'colecao.html?c=promo', 'hot']
       ] },
-      { h: t('Coleções', 'Collections'), items: [['Oliva · ' + t('Inverno', 'Winter') + ' 25/26', 'colecao.html?c=inverno']] }
+      { h: t('Coleções', 'Collections'), items: [['Salvia · ' + t('Inverno', 'Winter') + ' 26/27', 'colecao.html?c=inverno']] }
     ], tiles: [
       [t('Casacos em burel', 'Burel coats'), 'colecao.html?c=inverno&t=Casaco', megaImg('casaco-burel-oversized-auranza-xadrez-colorido', 1)],
       [t('Malhas em bambu', 'Bamboo knitwear'), 'colecao.html?c=malhas', megaImg('vestido-comprido-bambu-essenza-coral')]
@@ -142,6 +141,23 @@
               </div>
             </div>`;
 
+  // Menu móvel: Vestuário e Acessórios abrem com as mesmas colunas do menu do computador
+  const drawerGroup = m => `
+        <div class="dgroup">
+          <button type="button" class="big dgroup__btn" aria-expanded="false">${m.label}<i></i></button>
+          <div class="dgroup__panel"><div>
+            ${m.cols.map(c => `<h4>${c.href ? `<a href="${c.href}">${c.h}</a>` : c.h}</h4><ul>${c.items.map(megaLink).join('')}</ul>`).join('')}
+          </div></div>
+        </div>`;
+
+  // Pesquisa: sugestões (texto mostrado, termo pesquisado) e coleções em destaque
+  const SEARCH_TOP = [['Tote bags', 'Tote bag'], ['Cortiça portuguesa', 'Cortiça'], ['Burel', 'Burel'], ['Bambu', 'Bambu'], ['Vichy', 'Seersucker'],
+    ['Casacos', 'Casaco'], ['Camisas', 'Camisa'], ['Blusas', 'Blusa'], ['Calças', 'Calças'], ['Peças em verde', 'Verde']];
+  const SEARCH_FEAT = [
+    [t('Novidades', 'New in'), 'colecao.html?c=inverno', megaImg('vestido-comprido-bambu-essenza-coral')],
+    ['Tote bags', 'colecao.html?c=malas&t=Tote bag', megaImg('tote-bag-cortica-fragments-gold-caramel')]
+  ];
+
   // Seletores de moeda e idioma (canto direito da barra de anúncios)
   const CURRENCIES = [['EUR', '€'], ['USD', '$'], ['GBP', '£']];
   const LANGS = [['pt', 'Português'], ['en', 'English']];
@@ -178,8 +194,7 @@
       </header>
       <nav class="drawer-nav" id="drawerNav" aria-label="Menu móvel">
         <button class="icon-btn drawer-nav__close" id="menuClose" aria-label="${t('Fechar menu', 'Close menu')}">${ICON.close}</button>
-        <a class="big" href="colecao.html?c=inverno">${t('Vestuário', 'Garments')}</a>
-        <a class="big" href="colecao.html?c=malas">${t('Acessórios', 'Accessories')}</a>
+        ${MENU.filter(m => m.id !== 'sobre').map(drawerGroup).join('')}
         <a class="big" href="colecao.html?c=promo">${t('Preços especiais', 'Special prices')}</a>
         <a class="big" href="sobre.html">${t('A nossa história', 'Our story')}</a>
         <a class="big" href="lojas.html">${t('Mercados e lojas', 'Markets and stores')}</a>
@@ -209,9 +224,14 @@
         <div class="cart__foot" id="cartFoot"></div>
       </aside>
       <div class="search" id="search" role="dialog" aria-label="Pesquisa">
-        <div class="search__bar">${ICON.search.replace('<svg', '<svg width="30" height="30"')}<input id="searchInput" type="search" placeholder="O que procura?" autocomplete="off" aria-label="Pesquisar produtos"><button class="icon-btn" id="searchClose" aria-label="Fechar pesquisa">${ICON.close}</button></div>
-        <div class="search__chips">${['Burel', 'Casaco', 'Vestido', 'Bambu', 'Tote', 'Cortiça', 'Lavanda', 'Verde'].map(t => `<button class="chip" data-q="${t}">${t}</button>`).join('')}</div>
-        <div class="search__results" id="searchResults"></div>
+        <div class="search__bar">${ICON.search}<input id="searchInput" type="search" placeholder="O que procura?" autocomplete="off" aria-label="Pesquisar produtos"><button class="icon-btn" id="searchClose" aria-label="Fechar pesquisa">${ICON.close}</button></div>
+        <div class="search__body">
+          <div class="search__top"><h4>Mais pesquisado</h4><ul>${SEARCH_TOP.map(([label, q]) => `<li><button type="button" data-q="${q}">${label}</button></li>`).join('')}</ul></div>
+          <div>
+            <div class="search__feat" id="searchFeat">${SEARCH_FEAT.map(megaTile).join('')}</div>
+            <div class="search__results" id="searchResults"></div>
+          </div>
+        </div>
       </div>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
       <div class="cursor" id="cursor" aria-hidden="true">Ver</div>`;
@@ -239,7 +259,7 @@
             <div>
               <h4>Loja</h4>
               <ul>
-                <li><a href="colecao.html?c=inverno">Inverno 25/26</a></li>
+                <li><a href="colecao.html?c=inverno">Salvia · Inverno 26/27</a></li>
                 <li><a href="colecao.html?c=todos">Vestuário</a></li>
                 <li><a href="colecao.html?c=malas">Malas</a></li>
                 <li><a href="#" data-demo>Cartão-presente</a></li>
@@ -335,7 +355,7 @@
       : '<b>Parabéns!</b> Tem portes grátis para Portugal 🧡') +
       `<div class="cart__bar"><i style="width:${Math.min(100, total / FREE_SHIP * 100)}%"></i></div>`;
     if (!cart.length) {
-      items.innerHTML = `<div class="cart__empty"><div class="display">O carrinho está vazio</div><p>Que tal espreitar a nova coleção de inverno?</p><a class="btn" href="colecao.html?c=inverno" style="margin-top:14px">Ver coleção ${ICON.arrow}</a></div>`;
+      items.innerHTML = `<div class="cart__empty"><div class="display">O carrinho está vazio</div><p>Que tal espreitar a nova coleção de inverno?</p><a class="btn" href="colecao.html?c=inverno" style="margin-top:14px">Ver coleção</a></div>`;
       $('#cartFoot').innerHTML = '';
       return;
     }
@@ -350,7 +370,7 @@
     }).join('');
     $('#cartFoot').innerHTML = `
       <div class="cart__total"><span>Subtotal</span><span>${money(total)}</span></div>
-      <button class="btn btn--block btn--lg" data-demo="checkout">Finalizar compra ${ICON.arrow}</button>
+      <button class="btn btn--block btn--lg" data-demo="checkout">Finalizar compra</button>
       <small>Impostos incluídos. Portes calculados no checkout. Pagamento com MB WAY, Multibanco, cartão ou PayPal.</small>`;
   }
 
@@ -390,6 +410,7 @@
   function runSearch(q) {
     const out = $('#searchResults');
     const n = q.trim().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    $('#searchFeat').hidden = !!n;
     if (!n) { out.innerHTML = ''; return; }
     const hits = PRODUCTS.filter(p => [p.name, p.color, p.type, p.material, p.line, p.intro, ...Object.values(p.pt || {})].join(' ').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').includes(n)).slice(0, 12);
     out.innerHTML = hits.length ? hits.map(p => productCard(p, { quick: false, sizes: '16vw' })).join('') : `<p class="grid-empty">Não encontrámos resultados para “${esc(q)}”.</p>`;
@@ -450,6 +471,10 @@
     };
     $('#menuBtn').addEventListener('click', () => setMenu(true));
     $('#menuClose').addEventListener('click', () => setMenu(false));
+    $$('.dgroup__btn', drawer).forEach(b => b.addEventListener('click', () => {
+      const g = b.parentElement, open = !g.classList.contains('is-open');
+      g.classList.toggle('is-open', open); b.setAttribute('aria-expanded', open);
+    }));
     $('#overlay').addEventListener('click', () => setMenu(false));
 
     // carrinho
@@ -466,7 +491,7 @@
     $('#searchBtn').addEventListener('click', () => { openPanel($('#search')); setTimeout(() => $('#searchInput').focus(), 300); });
     $('#searchClose').addEventListener('click', closePanels);
     $('#searchInput').addEventListener('input', e => runSearch(e.target.value));
-    $$('.search__chips .chip').forEach(c => c.addEventListener('click', () => { $('#searchInput').value = c.dataset.q; runSearch(c.dataset.q); }));
+    $$('.search__top [data-q]').forEach(c => c.addEventListener('click', () => { $('#searchInput').value = c.textContent; runSearch(c.dataset.q); }));
     addEventListener('keydown', e => { if (e.key === 'Escape') { closePanels(); closeDd(); setPop(false); $('#drawerNav').classList.remove('is-open'); document.documentElement.style.overflow = ''; } });
 
     // adicionar rápido a partir dos cartões (delegado)
@@ -581,7 +606,7 @@
     const sib = siblings(p);
     const label = !ok ? '<span class="pcard__label out">Esgotado</span>'
       : p.was ? `<span class="pcard__label sale">−${Math.round((1 - p.price / p.was) * 100)}%</span>`
-        : isNew(p) ? '<span class="pcard__label">Novo</span>' : '';
+        : isNew(p) ? '<span class="pcard__label new">Novidade</span>' : '';
     const imgs = p.img.slice(0, 4);
     const multi = p.sizes.length > 1;
     const add = !ok
@@ -650,7 +675,7 @@
     document.body.classList.add('has-hero');
 
     // Banner: uma imagem de cada vez, alternando entre duas
-    // TODO(Marta): substituir pelas fotografias da coleção Outono/Inverno 25/26
+    // TODO(Marta): substituir pelas fotografias da coleção Salvia · Inverno 26/27
     const HERO = ['IMG_3452.heic', 'IMG_3167.heic'];
     const panel = $('.hero__panel');
     panel.insertAdjacentHTML('afterbegin', HERO.map((f, i) => {
@@ -670,9 +695,9 @@
     // Categorias
     const CATS = [
       ['Casacos', 'colecao.html?c=inverno&t=Casaco', 'casaco-burel-oversized-auranza-bordo', 0],
+      ['Camisas e blusas', 'colecao.html?c=inverno&t=Blusa', 'blusa-oversized-bambu-essenza-lavanda', 0],
       ['Vestidos', 'colecao.html?c=inverno&t=Vestido', 'vestido-comprido-bambu-essenza-verde', 0],
-      ['Tote bags', 'colecao.html?c=malas&t=Tote bag', 'tote-bag-cortica-fragments-gold-caramel', 0],
-      ['Micro bags', 'colecao.html?c=malas&t=Mala', 'mala-pequena-burel-micro-cutie-green', 0]
+      ['Tote bags', 'colecao.html?c=malas&t=Tote bag', 'tote-bag-cortica-fragments-gold-caramel', 0]
     ];
     $('#cats').innerHTML = CATS.map(([t, href, h, i]) => { const p = byHandle(h); return `<a class="cat" href="${href}"><span>${t}</span><div class="cat__img"><img src="${img(p.img[i], 700)}" alt="" loading="lazy"></div></a>`; }).join('');
 
@@ -716,12 +741,16 @@
     $('#quoteNext').addEventListener('click', () => showQ(ri + 1));
     showQ(0);
 
-    // Instagram: destaques escolhidos à mão (não as publicações mais recentes)
-    const IG = [[CDN + 'IMG_3452.heic'], ['casaco-burel-oversized-auranza-xadrez-colorido', 3], ['casaco-la-oversized-luranza-verde', 1], ['mini-tote-bag-cortica-fragments-gold-green', 0], [CDN + 'IMG01905-3.jpg'], ['calcas-largas-oliva-azulao', 1]];
-    $('#igGrid').innerHTML = IG.map(([h, i]) => {
-      const u = h.startsWith('http') ? h : byHandle(h).img[i];
-      return `<a href="https://www.instagram.com/bymartacoelho/" target="_blank" rel="noopener" aria-label="Ver no Instagram"><img src="${img(u, 500)}" alt="" loading="lazy"><span>${ICON.ig}</span></a>`;
+    // Instagram: publicações escolhidas pela Marta, por ordem, da esquerda para a direita.
+    // Fotografias e vídeos guardados em assets/img/ig/ (os vídeos só tocam quando estão visíveis)
+    const IG = [['Dd35DKtDad0', '1.jpg'], ['DaFlfOfDU5K', '2.jpg'], ['DXsClJ0o91T', '3.mp4'], ['DW_WYsTDZMW', '4.mp4'], ['DM0SGW0NdP8', '5.jpg'], ['DHRkcx6NwVI', '6.mp4']];
+    $('#igGrid').innerHTML = IG.map(([post, f]) => {
+      const src = 'assets/img/ig/' + f;
+      const media = f.endsWith('.mp4') ? `<video src="${src}#t=0.1" muted loop playsinline preload="metadata"></video>` : `<img src="${src}" alt="" loading="lazy">`;
+      return `<a href="https://www.instagram.com/p/${post}/" target="_blank" rel="noopener" aria-label="Ver no Instagram">${media}<span>${ICON.ig}</span></a>`;
     }).join('');
+    const vio = new IntersectionObserver(es => es.forEach(en => en.isIntersecting && !reduced ? en.target.play().catch(() => {}) : en.target.pause()));
+    $$('#igGrid video').forEach(v => vio.observe(v));
   }
 
   /* ========================================================================
@@ -826,7 +855,7 @@
     const wanted = p.sizes.find(s => s.s === q.get('s'));
     let size = wanted || (p.sizes.length === 1 ? p.sizes[0] : firstOk || p.sizes[0]);
 
-    $('#pdpCrumbs').innerHTML = `<a href="index.html">Início</a><span><a href="colecao.html?c=${p.collection}">${isBag ? 'Malas' : 'Inverno 25/26'}</a></span><span>${esc(p.name)}</span>`;
+    $('#pdpCrumbs').innerHTML = `<a href="index.html">Início</a><span><a href="colecao.html?c=${p.collection}">${isBag ? 'Malas' : 'Salvia · Inverno 26/27'}</a></span><span>${esc(p.name)}</span>`;
 
     // Galeria
     const gal = $('#gallery');
@@ -860,7 +889,7 @@
     addEventListener('keydown', e => { if (!lb.classList.contains('is-on')) return; if (e.key === 'Escape') lb.classList.remove('is-on'); if (e.key === 'ArrowLeft') showLb(li - 1); if (e.key === 'ArrowRight') showLb(li + 1); });
 
     // Informação
-    $('#pdpLine').innerHTML = `<span class="tag tag--new">${isBag ? esc(p.material) : 'Inverno 25/26'}</span>${p.line && !isBag ? `<span class="eyebrow">Linha ${esc(p.line)}</span>` : ''}`;
+    $('#pdpLine').innerHTML = `<span class="tag tag--new">${isBag ? esc(p.material) : 'Salvia · Inverno 26/27'}</span>${p.line && !isBag ? `<span class="eyebrow">Linha ${esc(p.line)}</span>` : ''}`;
     $('#pdpName').textContent = p.name;
     $('#pdpColor').textContent = p.color || p.material;
     $('#pdpPrice').innerHTML = p.was ? `<span class="sale">${money(p.price)}</span><s>${money(p.was)}</s>` : money(p.price);
@@ -981,10 +1010,10 @@
   function initStores() {
     // TODO(Marta): substituir as imagens pelas fotografias de cada loja
     const STORES = [
-      { id: 'showroom', city: 'Pombal', name: 'Showroom MARTA COELHO', type: 'Atendimento por marcação', addr: ['Rua Santa Luzia Nr 22', 'Escritório 2.20', '3100-483 Pombal'], map: 'Rua de Santa Luzia 22, 3100-483 Pombal', desc: 'Contactar o atendimento ao cliente para agendar a sua visita.', hours: 'Atendimento por marcação', mail: 'customercare@martacoelho.com', img: ['casaco-la-oversized-luranza-verde', 1] },
-      { id: 'lx-factory', city: 'Lisboa', name: 'Lx Factory', type: 'Mercado', addr: ['Rua Rodrigues Faria 103', '1300-501 Lisboa'], hours: 'Todos os domingos, das 10h às 18h', img: ['casaco-burel-oversized-auranza-xadrez-colorido', 1] },
+      { id: 'showroom', city: 'Pombal', name: 'Showroom MARTA COELHO', type: 'Atendimento por marcação', addr: ['Rua Santa Luzia Nr 22', 'Escritório 2.20', '3100-483 Pombal'], map: 'Rua de Santa Luzia 22, 3100-483 Pombal', desc: 'Showroom da marca MARTA COELHO, dedicado ao desenvolvimento das suas criações e do design de autor. Um espaço de proximidade, com atendimento personalizado mediante marcação prévia.', hours: 'Atendimento por marcação', mail: 'customercare@martacoelho.com', img: ['casaco-la-oversized-luranza-verde', 1] },
+      { id: 'lx-factory', city: 'Lisboa', name: 'Lx Factory', type: 'Mercado', addr: ['Rua Rodrigues Faria 103', '1300-501 Lisboa'], desc: 'Num espaço criativo, a LX Factory reúne marcas independentes, design de autor e projetos únicos. A marca MARTA COELHO está presente todos os domingos.', hours: 'Todos os domingos, das 10h às 18h', img: ['casaco-burel-oversized-auranza-xadrez-colorido', 1] },
       { id: 'scar-id', city: 'Porto', name: 'SCAR-ID', type: 'Design and Art Store Gallery', addr: ['Rua do Rosário, 253', '4050-124 Porto'], desc: 'Na zona das galerias de arte do Porto, perto da Rua de Miguel Bombarda. Loja e galeria dedicada ao design de autor português.', img: ['saia-midi-bambu-prenzia-lavanda', 1] },
-      { id: 'adora', city: 'Pombal', name: 'Adora Concept Store', type: 'Concept store', addr: ['Rua Dr. Luís Torres, 9', '3100-464 Pombal'], desc: 'Na terra natal da Marta. Uma concept store com peças escolhidas a dedo e um carinho especial pela marca.', img: ['casaco-burel-oversized-auranza-bordo', 1] }
+      { id: 'adora', city: 'Pombal', name: 'Adora Concept Store', type: 'Concept store', addr: ['Rua Dr. Luís Torres, 9', '3100-464 Pombal'], map: 'Rua Doutor Luís Torres 9, 3100-464 Pombal', desc: 'Na terra natal da Marta. Uma concept store com peças escolhidas a dedo e um carinho especial pela marca.', img: ['casaco-burel-oversized-auranza-bordo', 1] }
     ];
     const cities = [...new Set(STORES.map(s => s.city))];
     $('#storeFilter').innerHTML = `<button class="chip is-active" data-c="">Todas (${STORES.length})</button>` + cities.map(c => `<button class="chip" data-c="${c}">${c}</button>`).join('');
@@ -1003,7 +1032,7 @@
             ${s.mail ? `<li>${ICON.mail}<a href="mailto:${s.mail}"><u>${s.mail}</u></a></li>` : ''}
           </ul>
           <div class="store__actions">
-            <a class="btn btn--orange" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Como chegar ${ICON.arrow}</a>
+            <a class="btn btn--orange" href="https://www.google.com/maps/dir/?api=1&destination=${q}" target="_blank" rel="noopener">Como chegar</a>
             <a class="link" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Abrir no mapa</a>
           </div>
         </div>
