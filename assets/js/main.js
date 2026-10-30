@@ -437,8 +437,10 @@
     const header = $('#header');
     // na página de produto o cabeçalho fica transparente até ao fim da zona do produto (como na Deadly Ponies);
     // no telemóvel, até ao fim da fotografia principal, para não ficar por cima do texto
-    const pdp = $('.pdp');
-    const solidAt = () => !pdp ? 40 : (innerWidth <= 900 ? $('.pdp__main')?.offsetHeight || 0 : pdp.offsetHeight) - $('.header__bar', header).offsetHeight;
+    // na página inicial, até ao fim do banner
+    const pdp = $('.pdp'), hero = $('.hero');
+    const solidAt = () => (pdp ? (innerWidth <= 900 ? $('.pdp__main')?.offsetHeight || 0 : pdp.offsetHeight)
+      : hero ? hero.offsetTop + hero.offsetHeight : 40 + $('.header__bar', header).offsetHeight) - $('.header__bar', header).offsetHeight - (hero && !pdp ? $('.ann', header).offsetHeight : 0);
     const onScroll = () => {
       const y = scrollY;
       header.classList.toggle('is-solid', y > solidAt());
@@ -937,59 +939,80 @@
   function initProduct() {
     document.body.classList.add('clear-header');
     const q = new URLSearchParams(location.search);
-    const p = byHandle(q.get('p')) || PRODUCTS[0];
+    // a página mostra uma peça de cada vez; trocar de cor só troca o conteúdo, sem recarregar a página
+    let p, isBag, size, gi = 0;
+    const notifyText = $('#notify p').innerHTML;
+    const wishBtn = $('#wish');
+    let wl = store.get('mc-wish', []);
+    const gal = $('#gallery');
+
+    function render(handle, wantedSize) {
+    p = byHandle(handle) || PRODUCTS[0];
     document.title = `${p.name} ${p.color ? '| ' + p.color : ''} | Marta Coelho`;
-    const isBag = p.collection === 'malas';
+    isBag = p.collection === 'malas';
     const sib = siblings(p);
     const firstOk = p.sizes.find(s => s.ok);
-    const wanted = p.sizes.find(s => s.s === q.get('s'));
-    let size = wanted || (p.sizes.length === 1 ? p.sizes[0] : firstOk || p.sizes[0]);
+    const wanted = p.sizes.find(s => s.s === wantedSize);
+    size = wanted || (p.sizes.length === 1 ? p.sizes[0] : firstOk || p.sizes[0]);
+    gi = 0;
 
     $('#pdpCrumbs').innerHTML = `<a href="index.html">Início</a><span><a href="colecao.html?c=${p.collection}">${isBag ? 'Malas' : 'Salvia · Inverno 26/27'}</a></span><span>${esc(p.name)}</span>`;
 
-    // Galeria
-    const gal = $('#gallery');
-    // Imagem principal com miniaturas por baixo
+    // Galeria: imagem principal com miniaturas por baixo
     gal.innerHTML = `<figure class="pdp__main"><img src="${img(p.img[0], 1400)}" srcset="${srcset(p.img[0], [600, 900, 1300, 1800])}" sizes="(max-width: 900px) 100vw, 60vw" alt="${esc(p.name)} ${esc(p.color)}" fetchpriority="high"></figure>`
       + (p.img.length > 1 ? `<div class="pdp__thumbs">${p.img.map((u, i) => `<button class="${i ? '' : 'is-active'}" data-i="${i}" aria-label="Ver imagem ${i + 1}"><img src="${img(u, 240)}" alt="" loading="lazy"></button>`).join('')}</div>` : '');
-    const main = $('.pdp__main', gal), mainImg = $('img', main);
-    let gi = 0;
-    const showImg = i => {
-      gi = (i + p.img.length) % p.img.length;
-      mainImg.src = img(p.img[gi], 1400); mainImg.srcset = srcset(p.img[gi], [600, 900, 1300, 1800]);
-      $$('.pdp__thumbs button', gal).forEach((t, k) => t.classList.toggle('is-active', k === gi));
-    };
-    gal.addEventListener('click', e => { const t = e.target.closest('.pdp__thumbs button'); if (t) showImg(+t.dataset.i); });
-    // deslizar o dedo para mudar de imagem (telemóvel)
-    let tx = null;
-    main.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-    main.addEventListener('touchend', e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 40) showImg(gi + (dx < 0 ? 1 : -1)); });
-    // zoom ao passar o rato + lightbox
-    if (finePointer) {
-      main.addEventListener('mousemove', e => { const r = main.getBoundingClientRect(); mainImg.style.transformOrigin = `${(e.clientX - r.left) / r.width * 100}% ${(e.clientY - r.top) / r.height * 100}%`; });
-      main.addEventListener('mouseenter', () => main.classList.add('is-zoom'));
-      main.addEventListener('mouseleave', () => main.classList.remove('is-zoom'));
-    }
-    const lb = $('#lightbox'); let li = 0;
-    const showLb = i => { li = (i + p.img.length) % p.img.length; $('img', lb).src = img(p.img[li], 2000); };
-    main.addEventListener('click', () => { if (!finePointer) return; showLb(gi); lb.classList.add('is-on'); });
-    $('.lightbox__close', lb).addEventListener('click', () => lb.classList.remove('is-on'));
-    $('.lightbox__nav.prev', lb).addEventListener('click', () => showLb(li - 1));
-    $('.lightbox__nav.next', lb).addEventListener('click', () => showLb(li + 1));
-    addEventListener('keydown', e => { if (!lb.classList.contains('is-on')) return; if (e.key === 'Escape') lb.classList.remove('is-on'); if (e.key === 'ArrowLeft') showLb(li - 1); if (e.key === 'ArrowRight') showLb(li + 1); });
 
     // Informação
     $('#pdpLine').innerHTML = `<span class="tag tag--new">${isBag ? esc(p.material) : 'Salvia · Inverno 26/27'}</span>${p.line && !isBag ? `<span class="eyebrow">Modelo ${esc(p.line)}</span>` : ''}`;
     $('#pdpName').textContent = p.name;
     $('#pdpColor').textContent = p.color || p.material;
     $('#pdpPrice').innerHTML = p.was ? `<span class="sale">${money(p.price)}</span><s>${money(p.was)}</s>` : money(p.price);
-    $('#pdpIntro').textContent = p.intro;
 
-    if (sib.length > 1) {
-      $('#colorways').innerHTML = `<div class="pdp__label">Cor <span>${esc(p.color)}</span></div><div class="colorways">${sib.map(s => `<a class="colorway${s.h === p.h ? ' is-active' : ''}" href="produto.html?p=${s.h}" title="${esc(s.color)}${inStock(s) ? '' : ' (esgotado)'}"><img src="${img(s.img[0], 160)}" alt="${esc(s.color)}"></a>`).join('')}</div>`;
+    $('#colorways').innerHTML = sib.length > 1 ? `<div class="pdp__label">Cor <span>${esc(p.color)}</span></div><div class="colorways">${sib.map(s => `<a class="colorway${s.h === p.h ? ' is-active' : ''}" href="produto.html?p=${s.h}" data-swap-color="${s.h}" title="${esc(s.color)}${inStock(s) ? '' : ' (esgotado)'}"><img src="${img(s.img[0], 160)}" alt="${esc(s.color)}"></a>`).join('')}</div>` : '';
+    sib.forEach(s => { if (s !== p) new Image().src = img(s.img[0], 1400); });
+
+    $('#notify').classList.remove('is-done');
+    $('#notify p').innerHTML = notifyText;
+    wishBtn.classList.toggle('is-on', wl.includes(p.h));
+
+    renderSizes();
+    renderAcc();
+    renderRel();
+    renderSticky();
     }
 
-    const renderSizes = () => {
+    function showImg(i) {
+      gi = (i + p.img.length) % p.img.length;
+      const mainImg = $('.pdp__main img', gal);
+      mainImg.src = img(p.img[gi], 1400); mainImg.srcset = srcset(p.img[gi], [600, 900, 1300, 1800]);
+      $$('.pdp__thumbs button', gal).forEach((t, k) => t.classList.toggle('is-active', k === gi));
+    }
+    gal.addEventListener('click', e => {
+      const t = e.target.closest('.pdp__thumbs button'); if (t) showImg(+t.dataset.i);
+      if (e.target.closest('.pdp__main') && finePointer) { showLb(gi); lb.classList.add('is-on'); }
+    });
+    // deslizar o dedo para mudar de imagem (telemóvel)
+    let tx = null;
+    gal.addEventListener('touchstart', e => { if (e.target.closest('.pdp__main')) tx = e.touches[0].clientX; }, { passive: true });
+    gal.addEventListener('touchend', e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 40) showImg(gi + (dx < 0 ? 1 : -1)); });
+    // clicar na fotografia abre-a em grande (sem zoom ao passar o rato)
+    const lb = $('#lightbox'); let li = 0;
+    const showLb = i => { li = (i + p.img.length) % p.img.length; $('img', lb).src = img(p.img[li], 2000); };
+    $('.lightbox__close', lb).addEventListener('click', () => lb.classList.remove('is-on'));
+    $('.lightbox__nav.prev', lb).addEventListener('click', () => showLb(li - 1));
+    $('.lightbox__nav.next', lb).addEventListener('click', () => showLb(li + 1));
+    addEventListener('keydown', e => { if (!lb.classList.contains('is-on')) return; if (e.key === 'Escape') lb.classList.remove('is-on'); if (e.key === 'ArrowLeft') showLb(li - 1); if (e.key === 'ArrowRight') showLb(li + 1); });
+
+    // trocar de cor: atualiza a peça e o endereço, sem recarregar
+    $('#colorways').addEventListener('click', e => {
+      const a = e.target.closest('[data-swap-color]'); if (!a || e.metaKey || e.ctrlKey) return;
+      e.preventDefault();
+      if (a.dataset.swapColor === p.h) return;
+      render(a.dataset.swapColor, size && size.s);
+      history.replaceState(null, '', `produto.html?p=${p.h}`);
+    });
+
+    function renderSizes() {
       const multi = p.sizes.length > 1;
       $('#sizes').innerHTML = multi ? `<div class="pdp__label">Tamanho <button type="button" data-open-acc="1">Guia de tamanhos</button></div><div class="sizes">${p.sizes.map(s => `<button type="button" class="size${s.ok ? '' : ' is-out'}${s === size ? ' is-active' : ''}" data-s="${esc(s.s)}">${esc(s.s)}</button>`).join('')}</div>` : '';
       const ok = size.ok;
@@ -1001,13 +1024,12 @@
       $('#notifySize').textContent = multi ? ` no tamanho ${size.s}` : '';
       $('#addBtn').style.display = ok ? '' : 'none';
       $('.pdp__buy').classList.toggle('is-out', !ok); // esgotado: o coração passa a botão com texto
-      const sbBtn = $('#stickyBuy .btn'); if (sbBtn) sbBtn.textContent = ok ? 'Adicionar' : 'Avise-me';
-    };
+      if (sb.innerHTML) renderSticky();
+    }
     $('#sizes').addEventListener('click', e => {
       const b = e.target.closest('.size'); if (b) { size = p.sizes.find(s => s.s === b.dataset.s); renderSizes(); }
-      if (e.target.closest('[data-open-acc]')) openAcc(1, true);
+      if (e.target.closest('[data-open-acc]')) openAcc(2, true);
     });
-    renderSizes();
 
     $('#addBtn').addEventListener('click', () => addToCart(p.h, size.s));
     $('#notify form').addEventListener('submit', e => {
@@ -1018,15 +1040,14 @@
       $('#notify').classList.add('is-done');
       $('#notify p').innerHTML = `<b>Combinado!</b> Enviamos um e-mail para ${esc(input.value)} assim que ${esc(p.name)}${p.sizes.length > 1 ? ' (' + esc(size.s) + ')' : ''} voltar a estar disponível.`;
     });
-    const wish = $('#wish');
-    let wl = store.get('mc-wish', []);
-    wish.classList.toggle('is-on', wl.includes(p.h));
-    wish.addEventListener('click', () => {
+    wishBtn.addEventListener('click', () => {
       wl = wl.includes(p.h) ? wl.filter(x => x !== p.h) : [...wl, p.h]; store.set('mc-wish', wl);
-      wish.classList.toggle('is-on', wl.includes(p.h)); toast(wl.includes(p.h) ? 'Guardado nos favoritos' : 'Removido dos favoritos');
+      wishBtn.classList.toggle('is-on', wl.includes(p.h)); toast(wl.includes(p.h) ? 'Guardado nos favoritos' : 'Removido dos favoritos');
     });
 
     // Separadores expansíveis: Detalhes, Guia de Tamanhos, Entregas, Trocas e Devoluções
+    function renderAcc() {
+    const open = $$('.acc__item').map(it => it.classList.contains('is-open'));
     const details = `
       <dl>
         ${p.details ? `<dt>Detalhes</dt><dd>${esc(p.details)}</dd>` : ''}
@@ -1062,24 +1083,35 @@
       <p>Tem <b>14 dias</b>, a contar do dia em que recebe a encomenda, para desistir da compra sem indicar o motivo. Escreva-nos para <a href="mailto:customercare@martacoelho.com"><u>customercare@martacoelho.com</u></a> com o número da encomenda e as peças que quer devolver.</p>
       <p>Pedimos que devolva as peças sem uso, sem lavagens e com as etiquetas. Os portes de devolução ficam a cargo do cliente, exceto se o erro for nosso (peça errada ou com defeito).</p>
       <p>Para uma troca, a forma mais rápida de garantir a peça que quer é devolver a que tem e fazer uma nova compra.</p>`;
-    const ACC = [['Detalhes', details], ['Guia de tamanhos', sizeGuide], ['Entregas', shipping], ['Trocas e devoluções', returns]];
-    $('#acc').innerHTML = ACC.map(([t, b], i) => `<div class="acc__item${i === 0 ? ' is-open' : ''}"><button class="acc__btn" aria-expanded="${i === 0}" aria-controls="acc-${i}">${t}<i></i></button><div class="acc__panel" id="acc-${i}" role="region"><div class="acc__inner"><div>${b}</div></div></div></div>`).join('');
+    // a Descrição vem primeiro e está aberta quando a página abre
+    const ACC = [['Descrição', `<p>${esc(p.intro)}</p>`], ['Detalhes', details], ['Guia de tamanhos', sizeGuide], ['Entregas', shipping], ['Trocas e devoluções', returns]];
+    $('#acc').innerHTML = ACC.map(([t, b], i) => `<div class="acc__item${(open.length ? open[i] : i === 0) ? ' is-open' : ''}"><button class="acc__btn" aria-expanded="${open.length ? open[i] : i === 0}" aria-controls="acc-${i}">${t}<i></i></button><div class="acc__panel" id="acc-${i}" role="region"><div class="acc__inner"><div>${b}</div></div></div></div>`).join('');
+    }
     function openAcc(i, scroll) {
       $$('.acc__item').forEach((it, k) => { const on = k === i ? !it.classList.contains('is-open') || scroll : it.classList.contains('is-open'); it.classList.toggle('is-open', on); $('.acc__btn', it).setAttribute('aria-expanded', on); });
       if (scroll) $$('.acc__item')[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    $$('.acc__btn').forEach((b, i) => b.addEventListener('click', () => openAcc(i)));
+    $('#acc').addEventListener('click', e => { const b = e.target.closest('.acc__btn'); if (b) openAcc($$('.acc__btn').indexOf(b)); });
 
     // Complete o look
+    function renderRel() {
     const others = PRODUCTS.filter(x => x.collection === p.collection && x.name !== p.name && inStock(x));
     const seen = new Set(); const rel = others.filter(x => !seen.has(x.name) && seen.add(x.name)).slice(0, 4);
     $('#relGrid').innerHTML = rel.map(pcard).join('');
+    }
 
     // barra de compra fixa (telemóvel)
     const sb = $('#stickyBuy');
-    sb.innerHTML = `<img src="${img(p.img[0], 120)}" alt=""><div>${esc(p.name)}<span>${esc(p.color || p.material)} · ${money(p.price)}</span></div><button class="btn">Adicionar</button>`;
-    renderSizes();
-    $('.btn', sb).addEventListener('click', () => { if (size.ok) addToCart(p.h, size.s); else { $('#notify').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => $('#notify input').focus(), 500); } });
+    // no PC a barra também mostra os tamanhos; no telemóvel fica só a peça e o botão
+    function renderSticky() {
+      const sizes = p.sizes.length > 1 ? `<div class="sticky-buy__sizes">${p.sizes.map(s => `<button type="button" class="size${s.ok ? '' : ' is-out'}${s === size ? ' is-active' : ''}" data-sticky-size="${esc(s.s)}">${esc(s.s)}</button>`).join('')}</div>` : '';
+      sb.innerHTML = `<img src="${img(p.img[0], 120)}" alt=""><div class="sticky-buy__info">${esc(p.name)}<span>${esc(p.color || p.material)} · ${money(p.price)}</span></div>${sizes}<button class="btn">${size.ok ? 'Adicionar <span class="sticky-buy__more">ao carrinho</span>' : 'Avise-me'}</button>`;
+    }
+    sb.addEventListener('click', e => {
+      const sz = e.target.closest('[data-sticky-size]');
+      if (sz) { size = p.sizes.find(s => s.s === sz.dataset.stickySize); renderSizes(); return; }
+      if (!e.target.closest('.btn')) return; if (size.ok) addToCart(p.h, size.s); else { $('#notify').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => $('#notify input').focus(), 500); } });
+    render(q.get('p'), q.get('s'));
     new IntersectionObserver(([en]) => sb.classList.toggle('is-on', !en.isIntersecting && en.boundingClientRect.top < 0)).observe($('.pdp__buy'));
 
     // painel fixo: se for mais alto que o ecrã, fixa pelo fundo para que tudo seja alcançável

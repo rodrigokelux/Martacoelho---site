@@ -36,7 +36,7 @@ window.MC_I18N = (() => {
     // Cartões de produto
     'Edição esgotada': 'Sold out', 'Esgotado': 'Sold out', 'Pronto a enviar': 'Ready to ship', 'Novidade': 'New',
     'Adicionar rápido': 'Quick add', 'Avise-me se voltar': 'Notify me when it is back', 'Esgotado: avise-me': 'Sold out: notify me',
-    'Adicionar': 'Add', 'Adicionar ao carrinho': 'Add to cart', 'Imagem anterior': 'Previous image', 'Imagem seguinte': 'Next image',
+    'Adicionar': 'Add', 'ao carrinho': 'to cart', 'Adicionar ao carrinho': 'Add to cart', 'Imagem anterior': 'Previous image', 'Imagem seguinte': 'Next image',
     'Único': 'One size',
 
     // Rodapé
@@ -122,7 +122,7 @@ window.MC_I18N = (() => {
     'Complete o look': 'Complete the look', 'Imagem ampliada': 'Enlarged image',
     'Tamanho': 'Size', '· Envio em 1 a 3 dias úteis': '· Ships in 1 to 3 working days', '· Podemos avisá-la se voltar': '· We can let you know when it is back',
     'Combinado!': 'All set!',
-    'Detalhes': 'Details', 'Composição': 'Composition', 'Medidas': 'Measurements', 'Produção': 'Production', 'Cuidados': 'Care', 'Entregas': 'Delivery',
+    'Descrição': 'Description', 'Detalhes': 'Details', 'Composição': 'Composition', 'Medidas': 'Measurements', 'Produção': 'Production', 'Cuidados': 'Care', 'Entregas': 'Delivery',
     'Instruções de lavagem': 'Care instructions',
     'Tecido de cortiça portuguesa · Forro em algodão orgânico': 'Portuguese cork fabric · Organic cotton lining',
     'Burel, lã de ovelha Bordaleira da Serra da Estrela · Forro em algodão orgânico': 'Burel, Bordaleira sheep’s wool from Serra da Estrela · Organic cotton lining',
