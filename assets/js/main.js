@@ -55,6 +55,7 @@
     check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 5 5 9-10"/></svg>',
     mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
     route: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/></svg>',
+    chat: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3C6.8 3 3 6.4 3 10.6c0 2.3 1.1 4.3 3 5.7V21l4.1-2.5c.6.1 1.3.2 1.9.2 5.2 0 9-3.4 9-7.6S17.2 3 12 3Z"/><circle cx="8.2" cy="10.7" r="1.15" fill="#fff"/><circle cx="12" cy="10.7" r="1.15" fill="#fff"/><circle cx="15.8" cy="10.7" r="1.15" fill="#fff"/></svg>',
     down: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 9 7 7 7-7"/></svg>'
   };
 
@@ -234,6 +235,17 @@
         </div>
       </div>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <button type="button" class="chat-btn" id="chatBtn" aria-label="${t('Apoio ao cliente', 'Customer care')}" aria-expanded="false" aria-controls="chat">${ICON.chat}</button>
+      <div class="chat" id="chat" role="dialog" aria-label="${t('Apoio ao cliente', 'Customer care')}" aria-hidden="true">
+        <div class="chat__top">
+          <button type="button" class="chat__round" id="chatBack" aria-label="${t('Voltar', 'Back')}" hidden>${ICON.left}</button>
+          <button type="button" class="chat__pill" data-chat="seguir">${t('Acompanhar encomenda', 'Track order')}</button>
+          <button type="button" class="chat__round" id="chatClose" aria-label="${t('Fechar', 'Close')}">${ICON.close}</button>
+        </div>
+        <div class="chat__brand">Marta Coelho</div>
+        <div class="chat__log" id="chatLog" aria-live="polite"></div>
+        <a class="chat__privacy" href="#" data-demo>${t('Privacidade', 'Privacy')}</a>
+      </div>
       <div class="cursor" id="cursor" aria-hidden="true">Ver</div>`;
 
     const footer = $('#site-footer');
@@ -352,10 +364,10 @@
     const left = Math.max(0, FREE_SHIP - total);
     $('#cartShip').innerHTML = (left > 0
       ? `Faltam <b>${money(left)}</b> para ter portes grátis em Portugal`
-      : '<b>Parabéns!</b> Tem portes grátis para Portugal 🧡') +
+      : 'Portes grátis para Portugal 🧡') +
       `<div class="cart__bar"><i style="width:${Math.min(100, total / FREE_SHIP * 100)}%"></i></div>`;
     if (!cart.length) {
-      items.innerHTML = `<div class="cart__empty"><div class="display">O carrinho está vazio</div><p>Que tal espreitar a nova coleção de inverno?</p><a class="btn" href="colecao.html?c=inverno" style="margin-top:14px">Ver coleção</a></div>`;
+      items.innerHTML = `<div class="cart__empty"><p>O carrinho está vazio</p><a class="btn" href="colecao.html?c=inverno">Ver novidades</a></div>`;
       $('#cartFoot').innerHTML = '';
       return;
     }
@@ -421,14 +433,13 @@
      ------------------------------------------------------------------------ */
   function bindChrome() {
     const header = $('#header');
-    let lastY = 0;
+    // na página de produto o cabeçalho fica transparente até ao fim da zona do produto (como na Deadly Ponies);
+    // no telemóvel, até ao fim da fotografia principal, para não ficar por cima do texto
+    const pdp = $('.pdp');
+    const solidAt = () => !pdp ? 40 : (innerWidth <= 900 ? $('.pdp__main')?.offsetHeight || 0 : pdp.offsetHeight) - $('.header__bar', header).offsetHeight;
     const onScroll = () => {
       const y = scrollY;
-      header.classList.toggle('is-solid', y > 40);
-      header.classList.toggle('is-hidden', y > 600 && y > lastY + 4 && !header.matches(':hover'));
-      if (y < lastY - 4) header.classList.remove('is-hidden');
-      document.body.classList.toggle('header-hidden', header.classList.contains('is-hidden'));
-      lastY = y;
+      header.classList.toggle('is-solid', y > solidAt());
     };
     addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
@@ -529,6 +540,73 @@
     }
 
     renderCart();
+    bindChat();
+  }
+
+  /* ------------------------------------------------------------------------
+     Chat de apoio ao cliente (temas com respostas, como na Deadly Ponies)
+     ------------------------------------------------------------------------ */
+  const WA_URL = 'https://wa.me/message/T6QB2AAPCPGGI1';
+  const CHAT = {
+    home: { opts: ['envios', 'faq', 'trocas', 'msg'] },
+    envios: { label: t('Envios e entregas', 'Shipping and delivery'), text: t('Escolha um tema:', 'Please choose a topic:'), opts: ['seguir', 'envPT', 'envInt'] },
+    seguir: { label: t('Acompanhar a minha encomenda', 'Track my order'),
+      text: t('Quando a encomenda é enviada, recebe um e-mail com o código de seguimento dos CTT. As peças em stock são enviadas 1 a 3 dias depois da compra; as peças feitas por encomenda demoram cerca de 2 semanas.',
+        'When your order ships, you receive an email with the CTT tracking code. In-stock pieces ship 1 to 3 days after purchase; made-to-order pieces take about 2 weeks.'),
+      links: [[t('Seguir no site dos CTT', 'Track on the CTT website'), 'https://www.ctt.pt/feapl_2/app/open/objectSearch/objectSearch.jspx']] },
+    envPT: { label: t('Envios para Portugal', 'Shipping to Portugal'),
+      text: t('Portugal continental: 5 € ao domicílio ou 4,50 € num ponto Pick Up, grátis a partir de 150 €. Madeira e Açores: 11 €.',
+        'Mainland Portugal: €5 home delivery or €4.50 at a Pick Up point, free on orders over €150. Madeira and the Azores: €11.') },
+    envInt: { label: t('Envios internacionais', 'International shipping'),
+      text: t('Espanha: 7,50 €, grátis a partir de 150 €. Resto da Europa: 15,50 € a 16,50 €. Estados Unidos: 25 € a 97 €, com taxas alfandegárias incluídas.',
+        'Spain: €7.50, free on orders over €150. Rest of Europe: €15.50 to €16.50. United States: €25 to €97, customs duties included.') },
+    faq: { label: t('Perguntas frequentes', 'Frequently asked questions'), text: t('Escolha um tema:', 'Please choose a topic:'), opts: ['tamanhos', 'mao', 'personalizar', 'lojas'] },
+    tamanhos: { label: t('Que tamanho devo escolher?', 'Which size should I choose?'),
+      text: t('As nossas peças têm um corte largo (oversized). O tamanho S/M corresponde a XS, S e M (34–40) e o L/XL a L e XL (42–46). Na página de cada peça encontra o guia de tamanhos.',
+        'Our pieces have a loose (oversized) fit. Size S/M fits XS, S and M (34–40) and L/XL fits L and XL (42–46). You can find the size guide on each product page.') },
+    mao: { label: t('As peças são feitas à mão?', 'Are the pieces handmade?'),
+      text: t('Sim. Todas as peças são desenhadas pela designer Marta Coelho e feitas à mão em Portugal, em unidades limitadas.',
+        'Yes. Every piece is designed by Marta Coelho and handmade in Portugal, in limited quantities.') },
+    personalizar: { label: t('Posso personalizar um acessório?', 'Can I customise an accessory?'),
+      text: t('Sim! Muitos acessórios são feitos por encomenda: pode escolher o tecido, o fecho e o formato, de acordo com os materiais disponíveis.',
+        'Yes! Many accessories are made to order: you can choose the fabric, the fastening and the shape, depending on the materials available.'), opts: ['msg'] },
+    lojas: { label: t('Onde posso ver as peças?', 'Where can I see the pieces?'),
+      text: t('No showroom em Pombal, por marcação, na Lx Factory em Lisboa, todos os domingos, e em concept stores no Porto e em Pombal.',
+        'At our showroom in Pombal, by appointment, at Lx Factory in Lisbon every Sunday, and in concept stores in Porto and Pombal.'),
+      links: [[t('Ver lojas e mercados', 'See stores and markets'), 'lojas.html']] },
+    trocas: { label: t('Trocas e devoluções', 'Exchanges and returns'),
+      text: t('Tem 14 dias, a contar do dia em que recebe a encomenda, para devolver sem indicar o motivo. Escreva-nos com o número da encomenda e as peças que quer devolver. As peças devem vir sem uso, sem lavagens e com as etiquetas.',
+        'You have 14 days from the day you receive your order to return it without giving a reason. Write to us with your order number and the pieces you want to return. Pieces must be unworn, unwashed and with their labels.'), opts: ['msg'] },
+    msg: { label: t('Envie-nos uma mensagem', 'Send us a message'),
+      text: t('Fale connosco pelo WhatsApp ou por e-mail. Respondemos o mais depressa possível.', 'Talk to us on WhatsApp or by email. We reply as soon as we can.'),
+      links: [['WhatsApp', WA_URL], ['customercare@martacoelho.com', 'mailto:customercare@martacoelho.com']] }
+  };
+
+  function bindChat() {
+    const chat = $('#chat'), log = $('#chatLog'), btn = $('#chatBtn');
+    const opts = keys => `<div class="chat__opts">${keys.map(k => `<button type="button" class="chat__pill" data-chat="${k}">${CHAT[k].label}</button>`).join('')}</div>`;
+    const home = () => {
+      log.innerHTML = `<p class="chat__q">${t('Como podemos ajudar?', 'How can we help?')}</p>${opts(CHAT.home.opts)}`;
+      log.classList.add('is-home'); $('#chatBack').hidden = true;
+    };
+    const show = k => {
+      const n = CHAT[k];
+      if (log.classList.contains('is-home')) { log.innerHTML = ''; log.classList.remove('is-home'); }
+      $$('.chat__opts', log).forEach(o => o.remove());
+      log.insertAdjacentHTML('beforeend', `<p class="chat__me">${n.label}</p><div class="chat__bot"><p>${n.text}</p>${(n.links || []).map(([l, h]) => `<a class="chat__link" href="${h}"${h.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${l}</a>`).join('')}</div>${opts(n.opts || (k === 'msg' ? [] : ['msg']))}`);
+      $('#chatBack').hidden = false;
+      log.scrollTop = log.scrollHeight;
+    };
+    const setChat = on => {
+      chat.classList.toggle('is-open', on); chat.setAttribute('aria-hidden', !on); btn.setAttribute('aria-expanded', on);
+      if (on) { $('#pop').classList.remove('is-on'); $('#pop').setAttribute('aria-hidden', 'true'); }
+    };
+    home();
+    btn.addEventListener('click', () => setChat(!chat.classList.contains('is-open')));
+    $('#chatClose').addEventListener('click', () => setChat(false));
+    $('#chatBack').addEventListener('click', home);
+    chat.addEventListener('click', e => { const o = e.target.closest('[data-chat]'); if (o) show(o.dataset.chat); });
+    addEventListener('keydown', e => { if (e.key === 'Escape') setChat(false); });
   }
 
   /* ------------------------------------------------------------------------
@@ -761,32 +839,38 @@
     const wish = store.get('mc-wish', []);
     const soon = 'Estamos a preparar estas peças. Em breve na loja.';
     const none = () => false;
+    // Textos da Marta: cada frase é um parágrafo
+    const TOTE = ['Em cortiça portuguesa, burel, fazenda e tecido Vichy, com forro em algodão e algodão orgânico.', 'Leves e resistentes, todas as peças são feitas à mão.'];
+    const BOLSAS = ['Com o objetivo de aproveitar todos os retalhos resultantes do corte das Tote Bags, nasceram as nossas bolsas.', 'Uma iniciativa que procura reduzir o desperdício, seguindo os princípios do zero waste.'];
+    const CROCHE = ['Com o objetivo de valorizar as técnicas artesanais nasceram as nossas peças em croché.', 'Todas as peças são feitas à mão.'];
+    const KNIT = 'Malhas em bambu, mistura de bambu e algodão.';
     const CATS = {
-      inverno: { crumb: 'Vestuário', title: 'Coleção Outono–Inverno', desc: 'Casacos em burel da Serra da Estrela e lã, malhas de bambu e viscose EcoVero. Peças largas, quentes e cheias de cor, feitas à mão em Portugal.', f: p => p.collection === 'inverno' },
-      malhas: { crumb: 'Vestuário', title: 'Malhas', desc: 'Malhas em bambu, leves, macias e confortáveis, feitas à mão em Portugal.', f: p => p.collection === 'inverno' && p.material === 'Bambu' },
+      inverno: { crumb: 'Vestuário', title: 'Coleção Outono–Inverno', desc: ['Casacos em burel, confecionados com lã portuguesa da Serra da Estrela, malhas em bambu, mistura de bambu e algodão e conjuntos em 100% lã e 100% viscose EcoVero.', 'Peças confortáveis, de corte mais largo, oversized, quentes e com um apontamento de cor.', 'Todas as peças são desenhadas pela designer Marta Coelho e feitas à mão em Portugal.'], f: p => p.collection === 'inverno' },
+      malhas: { crumb: 'Vestuário', title: 'Malhas', desc: KNIT, f: p => p.collection === 'inverno' && p.material === 'Bambu' },
       calcoes: { crumb: 'Vestuário', title: 'Calções', desc: soon, f: none },
-      malas: { crumb: 'Acessórios', title: 'Tote bags e bolsas', desc: 'Em cortiça portuguesa, piñatex e burel, com forro em algodão orgânico. Leves, resistentes e feitas à mão, uma a uma.', f: p => p.collection === 'malas' },
+      malas: { crumb: 'Acessórios', title: 'Tote bags e bolsas', desc: TOTE, f: p => p.collection === 'malas' },
       vichy: { crumb: 'Acessórios', title: 'Tote bags em vichy e xadrez', desc: 'Tote bags em tecido aos quadrados, leves e alegres, com espaço para tudo o que precisa no dia a dia.', f: p => p.line === 'Seersucker' },
       fazenda: { crumb: 'Acessórios', title: 'Tote bags em fazenda', desc: soon, f: none },
       cortica: { crumb: 'Acessórios', title: 'Tote bags em cortiça portuguesa', desc: 'Tote bags em tecido de cortiça portuguesa, com forro em algodão orgânico.', f: p => p.type === 'Tote bag' && p.material === 'Cortiça' },
-      bolsas: { crumb: 'Acessórios', title: 'Bolsas em vichy', desc: soon, f: none },
-      'mini-bolsas': { crumb: 'Acessórios', title: 'Mini bolsas em vichy', desc: soon, f: none },
-      lencos: { crumb: 'Acessórios', title: 'Lenços em croché', desc: soon, f: none },
-      chapeus: { crumb: 'Acessórios', title: 'Chapéus em croché', desc: soon, f: none },
-      promo: { crumb: 'Loja', title: 'Preços especiais', desc: 'Peças com preço especial, enquanto houver stock.', f: p => !!p.was },
+      bolsas: { crumb: 'Acessórios', title: 'Bolsas em vichy', desc: BOLSAS, f: none },
+      'mini-bolsas': { crumb: 'Acessórios', title: 'Mini bolsas em vichy', desc: BOLSAS, f: none },
+      lencos: { crumb: 'Acessórios', title: 'Lenços em croché', desc: CROCHE, f: none },
+      chapeus: { crumb: 'Acessórios', title: 'Chapéus em croché', desc: CROCHE, f: none },
+      promo: { crumb: 'Loja', title: 'Preços especiais', desc: ['Peças com preço especial, enquanto houver stock.', 'Não perca a última oportunidade!'], f: p => !!p.was },
       favoritos: { crumb: 'Loja', title: 'Favoritos', desc: 'As peças que guardou. Toque no coração de uma peça para a juntar aqui.', f: p => wish.includes(p.h) },
       todos: { crumb: 'Loja', title: 'Toda a loja', desc: 'Vestuário e malas, desenhados por Marta Coelho e feitos à mão em Portugal.', f: () => true }
     };
     const c = CATS[q.get('c')] ? q.get('c') : 'inverno';
     const META = CATS[c];
     const TYPE_LABEL = { Casaco: 'Casacos e blazers', Vestido: 'Vestidos', Blusa: 'Camisas e blusas', Saia: 'Saias', 'Calças': 'Calças', 'Tote bag': 'Tote bags', Mala: 'Micro bags' };
+    const TYPE_DESC = { Casaco: 'Casacos em burel, confecionados com lã portuguesa da Serra da Estrela, e modelos em lã de tecidos deadstock.', Vestido: KNIT, Blusa: 'Malhas em bambu, mistura de bambu e algodão e conjuntos em 100% lã e 100% viscose EcoVero.', 'Calças': 'Conjuntos em 100% lã e 100% viscose EcoVero.', 'Tote bag': TOTE };
     const typeOf = p => /Blusa|Camisa/.test(p.type) ? 'Blusa' : p.type;
     document.body.dataset.page = META.crumb === 'Acessórios' ? 'malas' : 'colecao';
     document.title = `${META.title} | Marta Coelho`;
 
     const base = PRODUCTS.filter(META.f);
     const state = { sort: 'feat', t: new Set(q.get('t') ? [q.get('t')] : []), l: new Set(q.get('l') ? [q.get('l')] : []), col: new Set(), stock: false };
-    const heading = () => state.t.size === 1 && !state.l.size ? TYPE_LABEL[[...state.t][0]] : state.l.size === 1 && !state.t.size ? `Linha ${[...state.l][0]}` : META.title;
+    const heading = () => state.t.size === 1 && !state.l.size ? TYPE_LABEL[[...state.t][0]] : state.l.size === 1 && !state.t.size ? `Modelo ${[...state.l][0]}` : META.title;
 
     // gaveta de filtros
     const count = (fn) => base.filter(fn).length;
@@ -799,7 +883,7 @@
         ${[['feat', 'Em destaque'], ['new', 'Mais recentes'], ['asc', 'Preço: mais baixo'], ['desc', 'Preço: mais alto']].map(([v, l]) => `<label class="check"><input type="radio" name="sort" value="${v}"${v === 'feat' ? ' checked' : ''}>${l}</label>`).join('')}
       </div></fieldset>
       <fieldset><legend>Tipo de peça</legend><div>${types.map(t => box('t', t, TYPE_LABEL[t] || t, count(p => typeOf(p) === t))).join('')}</div></fieldset>
-      ${lines.length ? `<fieldset><legend>Linha</legend><div class="cols">${lines.map(l => box('l', l, l, count(p => p.line === l))).join('')}</div></fieldset>` : ''}
+      ${lines.length ? `<fieldset><legend>Modelo</legend><div class="cols">${lines.map(l => box('l', l, l, count(p => p.line === l))).join('')}</div></fieldset>` : ''}
       ${colors.length > 1 ? `<fieldset><legend>Cor</legend><div class="cols">${colors.map(x => box('col', x, x, count(p => p.color === x), `<i style="--c:${swatchOf(x)}"></i>`)).join('')}</div></fieldset>` : ''}
       <fieldset><legend>Disponibilidade</legend><div>${box('stock', '1', 'Pronto a enviar', count(inStock))}</div></fieldset>`;
     const form = $('#filtersForm');
@@ -827,7 +911,9 @@
       const active = state.t.size + state.l.size + state.col.size + (state.stock ? 1 : 0);
       $('#filterCount').textContent = active; $('#filterCount').classList.toggle('on', active > 0);
       $('#plpTitle').textContent = heading();
-      $('#plpDesc').textContent = META.desc;
+      const desc = (state.t.size === 1 && !state.l.size && TYPE_DESC[[...state.t][0]]) || META.desc;
+      $('#plpDesc').innerHTML = [].concat(desc).map(d => `<p>${d}</p>`).join('');
+      $('#customBox').hidden = META.crumb !== 'Acessórios';
       $('#crumbs').innerHTML = `<a href="index.html">Início</a><span>${META.crumb}</span>${heading() !== META.title ? `<span>${esc(heading())}</span>` : ''}`;
       const cards = list.map(pcard);
       // imagem editorial ocupa duas colunas, como nas referências
@@ -846,6 +932,7 @@
      PRODUTO
      ======================================================================== */
   function initProduct() {
+    document.body.classList.add('clear-header');
     const q = new URLSearchParams(location.search);
     const p = byHandle(q.get('p')) || PRODUCTS[0];
     document.title = `${p.name} ${p.color ? '| ' + p.color : ''} | Marta Coelho`;
@@ -889,7 +976,7 @@
     addEventListener('keydown', e => { if (!lb.classList.contains('is-on')) return; if (e.key === 'Escape') lb.classList.remove('is-on'); if (e.key === 'ArrowLeft') showLb(li - 1); if (e.key === 'ArrowRight') showLb(li + 1); });
 
     // Informação
-    $('#pdpLine').innerHTML = `<span class="tag tag--new">${isBag ? esc(p.material) : 'Salvia · Inverno 26/27'}</span>${p.line && !isBag ? `<span class="eyebrow">Linha ${esc(p.line)}</span>` : ''}`;
+    $('#pdpLine').innerHTML = `<span class="tag tag--new">${isBag ? esc(p.material) : 'Salvia · Inverno 26/27'}</span>${p.line && !isBag ? `<span class="eyebrow">Modelo ${esc(p.line)}</span>` : ''}`;
     $('#pdpName').textContent = p.name;
     $('#pdpColor').textContent = p.color || p.material;
     $('#pdpPrice').innerHTML = p.was ? `<span class="sale">${money(p.price)}</span><s>${money(p.was)}</s>` : money(p.price);
@@ -910,6 +997,7 @@
       $('#notify').classList.toggle('is-on', !ok);
       $('#notifySize').textContent = multi ? ` no tamanho ${size.s}` : '';
       $('#addBtn').style.display = ok ? '' : 'none';
+      $('.pdp__buy').classList.toggle('is-out', !ok); // esgotado: o coração passa a botão com texto
       const sbBtn = $('#stickyBuy .btn'); if (sbBtn) sbBtn.textContent = ok ? 'Adicionar' : 'Avise-me';
     };
     $('#sizes').addEventListener('click', e => {
@@ -995,7 +1083,7 @@
     const info = $('.pdp__info');
     const fitSticky = () => {
       if (innerWidth <= 900) { info.style.top = ''; return; }
-      const head = $('#header .header__bar').offsetHeight + 20;
+      const head = $('#header').offsetHeight + 20;
       info.style.top = Math.min(head, innerHeight - info.offsetHeight - 20) + 'px';
     };
     addEventListener('resize', fitSticky);
