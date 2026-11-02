@@ -129,7 +129,7 @@ window.MC_LANG = {
     "Envios gratuitos para Portugal continental a partir de 150 €.": "Kostenloser Versand innerhalb des portugiesischen Festlands ab 150 €.",
     "14 dias para trocar ou devolver, com embalagens recicláveis.": "14 Tage für Umtausch oder Rückgabe, mit recycelbaren Verpackungen.",
     "“Melhor que nas fotos, muito feliz com a minha compra, tecido confortável e não preciso passar a ferro.”": "„Noch schöner als auf den Fotos, ich bin sehr glücklich mit meinem Kauf, angenehmer Stoff und kein Bügeln nötig.“",
-    "“Ich liebe meine neue Tasche und die Farben darauf sind wunderschön.”": "„Ich liebe meine neue Tasche und die Farben darauf sind wunderschön.“",
+    "“Adoro a minha mala nova e as cores são lindíssimas.”": "„Ich liebe meine neue Tasche und die Farben darauf sind wunderschön.“",
     "“Amei! São perfeitos e com muita qualidade.”": "„Ich liebe es! Perfekt und von sehr hoher Qualität.“",
     "Anónimo": "Anonym",
     "Filtrar": "Filtern",

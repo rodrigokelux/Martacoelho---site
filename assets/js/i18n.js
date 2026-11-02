@@ -70,7 +70,7 @@ window.MC_I18N = (() => {
     'Envios gratuitos para Portugal continental a partir de 150 €.': 'Free shipping to mainland Portugal on orders over €150.',
     '14 dias para trocar ou devolver, com embalagens recicláveis.': '14 days to exchange or return, with recyclable packaging.',
     '“Melhor que nas fotos, muito feliz com a minha compra, tecido confortável e não preciso passar a ferro.”': '“Even better than in the photos, very happy with my purchase, comfortable fabric and no ironing needed.”',
-    '“Ich liebe meine neue Tasche und die Farben darauf sind wunderschön.”': '“I love my new bag and its colours are beautiful.”',
+    '“Adoro a minha mala nova e as cores são lindíssimas.”': '“I love my new bag and its colours are beautiful.”',
     '“Amei! São perfeitos e com muita qualidade.”': '“Loved it! They are perfect and very high quality.”',
     'Anónimo': 'Anonymous',
 

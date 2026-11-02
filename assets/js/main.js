@@ -812,7 +812,7 @@
     const REVIEWS = [
       ['Melhor que nas fotos, muito feliz com a minha compra, tecido confortável e não preciso passar a ferro.', 'H.C.S.'],
       ['I love it! Everything as described, beautiful color, comfortable and incredible material. I highly recommend it!', 'Anabela Coelho'],
-      ['Ich liebe meine neue Tasche und die Farben darauf sind wunderschön.', 'Mirjana'],
+      ['Adoro a minha mala nova e as cores são lindíssimas.', 'Mirjana'],
       ['I love my mini cork handbag, it is made excellently and matched the description. Beautifully lined and packaged.', 'Yasmin'],
       ['Amei! São perfeitos e com muita qualidade.', 'Anónimo'],
       ['The actual item is even better than the photos. Beautiful and super strong bag! Thank you, Marta!', 'Momò']
