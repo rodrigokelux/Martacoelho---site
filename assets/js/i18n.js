@@ -1,8 +1,9 @@
 /* ==========================================================================
-   Marta Coelho — versão em inglês
-   Dicionário PT → EN aplicado a todos os textos da página (incluindo os que
+   Marta Coelho — traduções (inglês, alemão, espanhol, italiano, francês, holandês)
+   Dicionário PT → idioma aplicado a todos os textos da página (incluindo os que
    os scripts criam depois) e tradução dos dados dos produtos.
-   Para traduzir um texto novo, basta acrescentá-lo ao dicionário D.
+   Para traduzir um texto novo, acrescente-o ao dicionário D (inglês) e ao D de
+   cada ficheiro em assets/js/lang/.
    ========================================================================== */
 window.MC_I18N = (() => {
   'use strict';
@@ -245,44 +246,86 @@ window.MC_I18N = (() => {
     '100% viscose EcoVero': '100% EcoVero viscose', 'Seersucker leve': 'Lightweight seersucker'
   };
 
-  // Malas pequenas: a descrição segue sempre o mesmo modelo
-  const BAG_COL = { castanha: 'brown', verde: 'green', rosa: 'pink', prateado: 'silver', vermelho: 'red', preto: 'black', branco: 'white', azul: 'blue', caramelo: 'caramel', natural: 'natural' };
-  const BAG_MAT = { 'de cortiça': 'cork', pinatex: 'Piñatex', burel: 'burel' };
+  /* ------------------------------------------------------------------------
+     Idioma escolhido. Inglês está neste ficheiro; alemão, espanhol, italiano,
+     francês e holandês têm cada um o seu ficheiro em assets/js/lang/ (com o
+     mesmo formato que EN, abaixo) e só se carrega o do idioma escolhido.
+     ------------------------------------------------------------------------ */
+  const LANGS = ['pt', 'en', 'de', 'es', 'it', 'fr', 'nl'];
+  let LANG = 'pt';
+  try { LANG = JSON.parse(localStorage.getItem('mc-lang')) || 'pt'; } catch { /* armazenamento indisponível */ }
+  if (!LANGS.includes(LANG)) LANG = 'pt';
+  if (LANG !== 'pt' && LANG !== 'en' && !window.MC_LANG) {
+    const v = ((document.currentScript && document.currentScript.src.match(/\?v=\w+/)) || [''])[0];
+    document.write(`<script src="assets/js/lang/${LANG}.js${v}"><\/script>`);
+  }
 
-  // Textos com partes variáveis (preços, nomes, números)
-  const R = [
-    [/^Mala pequena em tecido (de cortiça|pinatex|burel) (\S+)(?: com fragmentos (dourados|holográficos))?\. A mala tem um fecho feito de materiais ecológicos\.( O forro é em algodão orgânico\.)?$/,
-      (m, c, f, l) => `Small bag in ${BAG_COL[c] || c} ${BAG_MAT[m]} fabric${f ? ` with ${f === 'dourados' ? 'gold' : 'holographic'} fragments` : ''}. The bag has a zip made from eco-friendly materials.${l ? ' The lining is organic cotton.' : ''}`],
-    [/^(.+) foi adicionado ao carrinho$/, a => `${a} has been added to your cart`],
-    [/^Portes grátis em Portugal a partir de (.+)$/, a => `Free shipping in Portugal on orders over ${a}`],
-    [/^em (.+)$/, a => `in ${tr(a)}`],
-    [/^Modelo (.+)$/, a => `${a} model`],
-    [/^Não encontrámos resultados para “(.*)”\.$/, a => `No results found for “${a}”.`],
-    [/^Todas \((\d+)\)$/, a => `All (${a})`],
-    [/^no tamanho (.+)$/, a => `in size ${a}`],
-    [/^Enviamos um e-mail para (.+?) assim que (.+) voltar a estar disponível\.$/, (a, b) => `We will email ${a} as soon as ${b} is back in stock.`],
-    [/^Adicionar (.+)$/, a => `Add ${tr(a)}`],
-    [/^Ver imagem (\d+)$/, a => `View image ${a}`],
-    [/^(.+) \(esgotado\)$/, a => `${a} (sold out)`],
-    [/^© (\d+) Marta Coelho · Feito à mão em Portugal$/, a => `© ${a} Marta Coelho · Handmade in Portugal`],
-    [/^(.+) \| Marta Coelho$/, a => `${tr(a)} | Marta Coelho`],
-    [/^(.+) · (€.+)$/, (a, b) => `${tr(a)} · ${b}`]
+  const EN = {
+    locale: 'en-IE', D,
+    // Nomes das peças: "Casaco Luranza" → "Luranza Coat"
+    type: { Casaco: 'Coat', Vestido: 'Dress', Saia: 'Skirt', Blusa: 'Blouse', 'Calças': 'Trousers', Camisa: 'Shirt' },
+    name: (type, model, long) => `${model}${long ? ' Long' : ''} ${type}`,
+    measures: { 'Alça de ombro': 'Shoulder strap', Altura: 'Height', Largura: 'Width', Profundidade: 'Depth', Pega: 'Handle', 'Alça': 'Strap' },
+    // Malas pequenas: a descrição segue sempre o mesmo modelo
+    bag: {
+      col: { castanha: 'brown', verde: 'green', rosa: 'pink', prateado: 'silver', vermelho: 'red', preto: 'black', branco: 'white', azul: 'blue', caramelo: 'caramel', natural: 'natural' },
+      mat: { 'de cortiça': 'cork', pinatex: 'Piñatex', burel: 'burel' },
+      text: (col, mat, frag, lining) => `Small bag in ${col} ${mat} fabric${frag ? ` with ${frag === 'dourados' ? 'gold' : 'holographic'} fragments` : ''}. The bag has a zip made from eco-friendly materials.${lining ? ' The lining is organic cotton.' : ''}`
+    },
+    // Textos com partes variáveis ($1, $2 = a parte que muda)
+    F: {
+      added: '$1 has been added to your cart', free: 'Free shipping in Portugal on orders over $1', in: 'in $1', model: '$1 model',
+      none: 'No results found for “$1”.', all: 'All ($1)', size: 'in size $1', notify: 'We will email $1 as soon as $2 is back in stock.',
+      add: 'Add $1', img: 'View image $1', soldout: '$1 (sold out)', copy: '© $1 Marta Coelho · Handmade in Portugal', title: '$1 | Marta Coelho', price: '$1 · $2'
+    }
+  };
+  const pack = () => (LANG !== 'en' && window.MC_LANG) || EN;
+
+  const PAT = [
+    [/^Mala pequena em tecido (de cortiça|pinatex|burel) (\S+)(?: com fragmentos (dourados|holográficos))?\. A mala tem um fecho feito de materiais ecológicos\.( O forro é em algodão orgânico\.)?$/, 'bag'],
+    [/^(.+) foi adicionado ao carrinho$/, 'added'],
+    [/^Portes grátis em Portugal a partir de (.+)$/, 'free'],
+    [/^em (.+)$/, 'in'],
+    [/^Modelo (.+)$/, 'model'],
+    [/^Não encontrámos resultados para “(.*)”\.$/, 'none'],
+    [/^Todas \((\d+)\)$/, 'all'],
+    [/^no tamanho (.+)$/, 'size'],
+    [/^Enviamos um e-mail para (.+?) assim que (.+) voltar a estar disponível\.$/, 'notify'],
+    [/^Adicionar (.+)$/, 'add'],
+    [/^Ver imagem (\d+)$/, 'img'],
+    [/^(.+) \(esgotado\)$/, 'soldout'],
+    [/^© (\d+) Marta Coelho · Feito à mão em Portugal$/, 'copy'],
+    [/^(.+) \| Marta Coelho$/, 'title'],
+    [/^(.+) · (€.+)$/, 'price']
   ];
+  const TR_FIRST = new Set(['in', 'add', 'title', 'price']); // a primeira parte também é traduzida
+  function variable(k) {
+    const P = pack();
+    for (const [re, key] of PAT) {
+      const m = k.match(re);
+      if (!m) continue;
+      const g = m.slice(1);
+      if (key === 'bag') return P.bag.text(P.bag.col[g[1]] || g[1], P.bag.mat[g[0]], g[2], !!g[3]);
+      if (TR_FIRST.has(key)) g[0] = tr(g[0]);
+      return P.F[key].replace(/\$(\d)/g, (_, i) => g[i - 1] ?? '');
+    }
+  }
 
   function tr(s) {
     const k = norm(String(s ?? ''));
-    if (!k) return s;
-    let v = D[k];
-    if (v === undefined) for (const [re, f] of R) { const m = k.match(re); if (m) { v = f(...m.slice(1)); break; } }
+    if (!k || LANG === 'pt') return s;
+    let v = pack().D[k];
+    if (v === undefined) v = variable(k);
     if (v === undefined || v === k) return s;
     return s.match(/^\s*/)[0] + v + s.match(/\s*$/)[0];
   }
 
-  // Nomes das peças: "Casaco Luranza" → "Luranza Coat"
-  const TYPE = { Casaco: 'Coat', Vestido: 'Dress', Saia: 'Skirt', Blusa: 'Blouse', 'Calças': 'Trousers', Camisa: 'Shirt' };
-  const name = s => { const m = s.match(/^(Casaco|Vestido|Saia|Blusa|Calças|Camisa) (\S+)( Comprida)?$/); return m ? `${m[2]}${m[3] ? ' Long' : ''} ${TYPE[m[1]]}` : s; };
-  const measures = s => s.replace(/Alça de ombro/g, 'Shoulder strap').replace(/Altura/g, 'Height').replace(/Largura/g, 'Width')
-    .replace(/Profundidade/g, 'Depth').replace(/Pega/g, 'Handle').replace(/Alça/g, 'Strap');
+  const name = s => {
+    const m = s.match(/^(Casaco|Vestido|Saia|Blusa|Calças|Camisa) (\S+)( Comprida)?$/);
+    const P = pack();
+    return m ? P.name(P.type[m[1]], m[2], !!m[3]) : s;
+  };
+  const measures = s => { const M = pack().measures; return s.replace(new RegExp(Object.keys(M).join('|'), 'g'), w => M[w]); };
 
   // Traduz os campos visíveis de um produto (guarda o original em p.pt para a pesquisa)
   function product(p) {
@@ -309,7 +352,7 @@ window.MC_I18N = (() => {
     for (let n = w.nextNode(); n; n = w.nextNode()) n.nodeType === 3 ? textNode(n) : attrs(n);
   }
   function start() {
-    document.documentElement.lang = 'en';
+    document.documentElement.lang = LANG;
     apply(document.documentElement);
     new MutationObserver(ms => ms.forEach(m => {
       if (m.type === 'characterData') textNode(m.target);
@@ -318,5 +361,5 @@ window.MC_I18N = (() => {
     })).observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ATTRS });
   }
 
-  return { tr, product, start };
+  return { tr, product, start, LANG, locale: () => pack().locale };
 })();

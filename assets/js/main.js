@@ -31,7 +31,7 @@
   // as mesmas cores com o nome em inglês
   Object.assign(SWATCH, { 'black': SWATCH.preto, 'dark blue': SWATCH['azul escuro'], 'green': SWATCH.verde, 'burgundy': SWATCH['bordô'], 'brown': SWATCH.castanho,
     'beige': SWATCH.bege, 'lavender': SWATCH.lavanda, 'white': SWATCH.branco, 'royal blue': SWATCH['azulão'], 'colourful check': SWATCH['xadrez colorido'] });
-  const swatchOf = c => SWATCH[(c || '').toLowerCase()] || '#cbb8a6';
+  const swatchOf = c => SWATCH[(c || '').toLowerCase()] || SWATCH[(COLOR_PT[c] || '').toLowerCase()] || '#cbb8a6';
 
   const ICON = {
     search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
@@ -60,11 +60,15 @@
   };
 
   // Idioma: o cabeçalho e os menus usam t(); o resto da página é traduzido por assets/js/i18n.js
-  const LANG = store.get('mc-lang', 'pt') === 'en' ? 'en' : 'pt';
-  const t = (pt, en) => LANG === 'en' ? en : pt;
-  const I18N = LANG === 'en' && window.MC_I18N;
+  const LANG = (window.MC_I18N && window.MC_I18N.LANG) || 'pt';
+  const I18N = LANG !== 'pt' && window.MC_I18N;
+  // t(pt, en): nos outros idiomas o texto português é procurado no dicionário do idioma
+  const t = (pt, en) => LANG === 'pt' ? pt : LANG === 'en' ? en : I18N.tr(pt);
   if (I18N) PRODUCTS.forEach(I18N.product);
-  const money = n => n.toLocaleString(LANG === 'en' ? 'en-IE' : 'pt-PT', { style: 'currency', currency: 'EUR' });
+  // cor traduzida → cor em português (para as amostras de cor)
+  const COLOR_PT = {};
+  PRODUCTS.forEach(p => { if (p.pt) COLOR_PT[p.color] = p.pt.color; });
+  const money = n => n.toLocaleString(I18N ? I18N.locale() : 'pt-PT', { style: 'currency', currency: 'EUR' });
   const IG_URL = 'https://www.instagram.com/bymartacoelho/';
 
   /* ------------------------------------------------------------------------
@@ -88,6 +92,7 @@
         [t('Malhas', 'Knitwear'), 'colecao.html?c=malhas'],
         [t('Calças', 'Trousers'), 'colecao.html?c=inverno&t=Calças'],
         [t('Vestidos', 'Dresses'), 'colecao.html?c=inverno&t=Vestido'],
+        [t('Saias', 'Skirts'), 'colecao.html?c=inverno&t=Saia'],
         [t('Casacos e blazers', 'Coats and blazers'), 'colecao.html?c=inverno&t=Casaco'],
         [t('Calções', 'Shorts'), 'colecao.html?c=calcoes'],
         [t('Preços especiais', 'Special prices'), 'colecao.html?c=promo', 'hot']
@@ -161,7 +166,7 @@
 
   // Seletores de moeda e idioma (canto direito da barra de anúncios)
   const CURRENCIES = [['EUR', '€'], ['USD', '$'], ['GBP', '£']];
-  const LANGS = [['pt', 'Português'], ['en', 'English']];
+  const LANGS = [['pt', 'Português'], ['en', 'English'], ['de', 'Deutsch'], ['es', 'Español'], ['it', 'Italiano'], ['fr', 'Français'], ['nl', 'Nederlands']];
   const pickers = () => `
     <div class="dd"><button type="button" class="dd__btn" aria-expanded="false" aria-label="${t('Moeda', 'Currency')}">EUR €${ICON.down}</button>
       <ul class="dd__menu">${CURRENCIES.map(([c, s]) => `<li><button type="button"${c === 'EUR' ? ' class="is-on"' : ' data-demo="moeda"'}>${c} ${s}</button></li>`).join('')}</ul></div>
@@ -868,7 +873,7 @@
     const c = CATS[q.get('c')] ? q.get('c') : 'inverno';
     const META = CATS[c];
     const TYPE_LABEL = { Casaco: 'Casacos e blazers', Vestido: 'Vestidos', Blusa: 'Camisas e blusas', Saia: 'Saias', 'Calças': 'Calças', 'Tote bag': 'Tote bags', Mala: 'Micro bags' };
-    const TYPE_DESC = { Casaco: 'Casacos em burel, confecionados com lã portuguesa da Serra da Estrela, e modelos em lã de tecidos deadstock.', Vestido: KNIT, Blusa: 'Malhas em bambu, mistura de bambu e algodão e conjuntos em 100% lã e 100% viscose EcoVero.', 'Calças': 'Conjuntos em 100% lã e 100% viscose EcoVero.', 'Tote bag': TOTE };
+    const TYPE_DESC = { Casaco: 'Casacos em burel, confecionados com lã portuguesa da Serra da Estrela, e modelos em lã de tecidos deadstock.', Vestido: KNIT, Saia: KNIT, Blusa: 'Malhas em bambu, mistura de bambu e algodão e conjuntos em 100% lã e 100% viscose EcoVero.', 'Calças': 'Conjuntos em 100% lã e 100% viscose EcoVero.', 'Tote bag': TOTE };
     const typeOf = p => /Blusa|Camisa/.test(p.type) ? 'Blusa' : p.type;
     document.body.dataset.page = META.crumb === 'Acessórios' ? 'malas' : 'colecao';
     document.title = `${META.title} | Marta Coelho`;
@@ -1193,6 +1198,45 @@
     // esconde o esbatimento da direita quando se chega ao fim do percurso
     const tlEnd = () => tl.classList.toggle('is-end', tt.scrollLeft >= tt.scrollWidth - tt.clientWidth - 4);
     tt.addEventListener('scroll', tlEnd, { passive: true }); addEventListener('resize', tlEnd); tlEnd();
+
+    // fotografia de cada momento: aparece junto ao rato ao passar por cima (no telemóvel, ao tocar)
+    const withPhoto = $$('li[data-photo]', tt);
+    if (withPhoto.length) {
+      const peek = document.createElement('div');
+      peek.className = 'tl-peek';
+      peek.setAttribute('aria-hidden', 'true');
+      peek.innerHTML = '<div class="tl-peek__in"><img alt=""></div>';
+      document.body.append(peek);
+      const pic = $('img', peek);
+      withPhoto.forEach(li => { const im = new Image(); im.src = `${li.dataset.photo}?width=600`; }); // pré-carrega
+      let x = 0, y = 0, tx = 0, ty = 0, raf = 0, cur = null;
+      const draw = () => {
+        x += (tx - x) * 0.16; y += (ty - y) * 0.16;
+        const tilt = reduced ? 0 : Math.max(-6, Math.min(6, (tx - x) * 0.06));
+        peek.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${tilt.toFixed(2)}deg)`;
+        raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.3 ? requestAnimationFrame(draw) : 0;
+      };
+      const moveTo = (cx, cy, jump) => {
+        tx = cx; ty = cy;
+        if (jump || reduced) { x = tx; y = ty; }
+        peek.classList.toggle('is-below', cy < Math.min(innerHeight * 0.55, 420));
+        if (!raf) raf = requestAnimationFrame(draw);
+      };
+      const show = (li, e) => {
+        if (cur !== li) pic.src = `${li.dataset.photo}?width=600`;
+        moveTo(e.clientX, e.clientY, !peek.classList.contains('is-on'));
+        cur = li; peek.classList.add('is-on');
+      };
+      const hide = () => { cur = null; peek.classList.remove('is-on'); };
+      withPhoto.forEach(li => {
+        li.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') show(li, e); });
+        li.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') moveTo(e.clientX, e.clientY); });
+        li.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hide(); });
+        li.addEventListener('click', e => { if (!finePointer) { cur === li ? hide() : show(li, e); } });
+      });
+      tt.addEventListener('scroll', () => { if (!finePointer) hide(); }, { passive: true });
+      addEventListener('scroll', () => { if (!finePointer) hide(); }, { passive: true });
+    }
   }
 
   /* ------------------------------------------------------------------------
