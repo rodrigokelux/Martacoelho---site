@@ -1199,45 +1199,58 @@
     const tlEnd = () => tl.classList.toggle('is-end', tt.scrollLeft >= tt.scrollWidth - tt.clientWidth - 4);
     tt.addEventListener('scroll', tlEnd, { passive: true }); addEventListener('resize', tlEnd); tlEnd();
 
-    // fotografia de cada momento: aparece junto ao rato ao passar por cima (no telemóvel, ao tocar)
-    const withPhoto = $$('li[data-photo]', tt);
-    if (withPhoto.length) {
-      const peek = document.createElement('div');
-      peek.className = 'tl-peek';
-      peek.setAttribute('aria-hidden', 'true');
-      peek.innerHTML = '<div class="tl-peek__in"><img alt=""></div>';
-      document.body.append(peek);
-      const pic = $('img', peek);
-      withPhoto.forEach(li => { const im = new Image(); im.src = `${li.dataset.photo}?width=600`; }); // pré-carrega
-      let x = 0, y = 0, tx = 0, ty = 0, raf = 0, cur = null;
-      const draw = () => {
-        x += (tx - x) * 0.16; y += (ty - y) * 0.16;
-        const tilt = reduced ? 0 : Math.max(-6, Math.min(6, (tx - x) * 0.06));
-        peek.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${tilt.toFixed(2)}deg)`;
-        raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.3 ? requestAnimationFrame(draw) : 0;
+    // uma só fotografia ao lado do percurso: mostra o momento que está à frente
+    // (ao deslizar no telemóvel, ao passar o rato no computador; sem interação, vai passando sozinha)
+    const fig = $('.tl-photo'), items = $$('li', tt);
+    if (fig && items.length) {
+      const [imgA, imgB] = $$('img', fig), cap = $('figcaption', fig);
+      let front = imgA, active = -1, hovering = false, timer = 0;
+      items.forEach(li => { if (li.dataset.photo) new Image().src = `${li.dataset.photo}?width=900`; }); // pré-carrega
+      const show = i => {
+        if (i === active || !items[i]) return;
+        active = i;
+        const li = items[i];
+        items.forEach((x, k) => x.classList.toggle('is-active', k === i));
+        const back = front === imgA ? imgB : imgA;
+        back.classList.remove('is-on', 'is-under');
+        back.classList.toggle('is-contain', /\.png$/i.test(li.dataset.photo || ''));
+        back.src = `${li.dataset.photo}?width=900`;
+        back.srcset = `${li.dataset.photo}?width=600 600w, ${li.dataset.photo}?width=900 900w, ${li.dataset.photo}?width=1300 1300w`;
+        back.sizes = '(max-width: 900px) 92vw, 24vw';
+        const reveal = () => {
+          front.classList.remove('is-on'); front.classList.add('is-under');
+          void back.offsetWidth; // recomeça a animação
+          back.classList.add('is-on');
+          front = back;
+        };
+        back.complete ? requestAnimationFrame(reveal) : back.addEventListener('load', reveal, { once: true });
+        cap.classList.add('is-swap');
+        setTimeout(() => { $('b', cap).textContent = $('b', li).textContent; $('span', cap).textContent = $('h3', li).textContent; cap.classList.remove('is-swap'); }, 200);
       };
-      const moveTo = (cx, cy, jump) => {
-        tx = cx; ty = cy;
-        if (jump || reduced) { x = tx; y = ty; }
-        peek.classList.toggle('is-below', cy < Math.min(innerHeight * 0.55, 420));
-        if (!raf) raf = requestAnimationFrame(draw);
+      // ao deslizar: o momento mais perto da esquerda do percurso
+      const fromScroll = () => {
+        if (hovering) return;
+        const left = tt.getBoundingClientRect().left + parseFloat(getComputedStyle(tt).paddingLeft);
+        let best = 0, dist = Infinity;
+        items.forEach((li, k) => { const d = Math.abs(li.getBoundingClientRect().left - left); if (d < dist) { dist = d; best = k; } });
+        show(best);
       };
-      const show = (li, e) => {
-        if (cur !== li) pic.src = `${li.dataset.photo}?width=600`;
-        moveTo(e.clientX, e.clientY, !peek.classList.contains('is-on'));
-        cur = li; peek.classList.add('is-on');
-      };
-      const hide = () => { cur = null; peek.classList.remove('is-on'); };
-      withPhoto.forEach(li => {
-        li.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') show(li, e); });
-        li.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') moveTo(e.clientX, e.clientY); });
-        li.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hide(); });
-        li.addEventListener('click', e => { if (!finePointer) { cur === li ? hide() : show(li, e); } });
+      let raf = 0;
+      tt.addEventListener('scroll', () => { stop(); if (!raf) raf = requestAnimationFrame(() => { raf = 0; fromScroll(); }); }, { passive: true });
+      items.forEach((li, k) => {
+        li.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { hovering = true; stop(); show(k); } });
+        li.addEventListener('click', () => { stop(); show(k); });
       });
-      tt.addEventListener('scroll', () => { if (!finePointer) hide(); }, { passive: true });
-      addEventListener('scroll', () => { if (!finePointer) hide(); }, { passive: true });
+      tt.addEventListener('pointerleave', () => { hovering = false; });
+      // quando tudo cabe no ecrã (computador grande) e ninguém mexe, os momentos vão passando sozinhos
+      const scrollable = () => tt.scrollWidth > tt.clientWidth + 4;
+      const stop = () => { clearInterval(timer); timer = 0; };
+      const play = () => { if (!reduced && !timer && !scrollable()) timer = setInterval(() => { if (!hovering) show((active + 1) % items.length); }, 3800); };
+      new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? play() : stop()), { threshold: 0.3 }).observe(fig.parentElement);
+      show(0);
     }
   }
+
 
   /* ------------------------------------------------------------------------
      Arranque
